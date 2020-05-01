@@ -7,10 +7,20 @@ def execute_avalanche(name):
     while no_avalanche:
         if np.any(a.grid >= 4):
             a.avalanche(name)
-            print(a.avalanche_stats)
+            print_avalanche_stats(name, a.avalanche_stats[name])
             no_avalanche = False
         else:
             a.drop_sand()
+
+def print_avalanche_stats(name, dict_stat):
+    print("\n")
+    print(f"Name of avalanche: {name}")
+    print(f"Time at end of avalanche: {dict_stat[0]}")
+    print(f"Number of topples: {dict_stat[1]}")
+    print(f"Avalanche area: {dict_stat[2]}")
+    print(f"Mass lost: {dict_stat[3]}")
+    print("Avalanche radius: {:.2f}".format(dict_stat[4]))
+    print("\n")
 
 
 if __name__ == "__main__":

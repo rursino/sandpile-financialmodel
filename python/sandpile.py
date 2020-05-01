@@ -40,7 +40,6 @@ class SandPile:
 
             The row number. Must be between 1 and the length of the grid.
 
-
         j: int
 
             The column number. Must be between 1 and the width of the grid.
@@ -61,6 +60,30 @@ class SandPile:
         """
 
         plt.imshow(self.grid, *args, **kwargs)
+
+    def plot_mass(self, start_time=None, end_time=None):
+        """ Plots the mass of the grid over its lifetime.
+
+        Parameters
+        ==========
+
+        start_time: int
+
+            The first time point to show in plot. Defaults to None.
+
+        end_time: int
+
+            The last time point to show in plot. Defaults to None.
+
+        """
+
+        if end_time:
+            end_time += 1
+
+        time = np.arange(self.time)[start_time:end_time]
+        mass = np.array(self.mass_history)[start_time:end_time]
+
+        plt.plot(time, mass)
 
     def drop_sand(self, n=1, site=None):
         """Add `n` grains of sand to the grid.  Each grains of sand is added to
@@ -112,7 +135,7 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
-    def topple(self, site):
+    def topple(self, site, increment_time=False):
         """Topple the specified site.
 
         Parameters
@@ -121,6 +144,10 @@ class SandPile:
         site: tuple-like
 
             The address of the site to topple.
+
+        increment_time: bool
+
+            Whether to increment one time step or not. Defaults to False.
 
         """
 
@@ -136,6 +163,9 @@ class SandPile:
             self.grid[i][j-1] += 1
         if j != self.width - 1:
             self.grid[i][j+1] += 1
+
+        if increment_time:
+            self.time += 1
 
     def avalanche(self, name):# Other params: start?
         """Run the avalanche causing all sites to topple and store the stats of
@@ -154,7 +184,9 @@ class SandPile:
         num_of_topples = 0
         toppled_sites = []
         start_mass = self.mass()
-        #radius
+
+        # Record first toppled site for calculation of radius.
+        first_toppled_site = []
 
         # Topple sites until all sites have less than the threshold no.
         while np.any(self.grid >= 4):
@@ -162,6 +194,10 @@ class SandPile:
             topple_locations = np.where(self.grid >= 4)
             all_i = topple_locations[0]
             all_j = topple_locations[1]
+
+            if not first_toppled_site:
+                first_toppled_site.append(all_i[0])
+                first_toppled_site.append(all_j[0])
 
             # Topple each site and update avalanche statistics.
             for topple_number in range(len(all_i)):
@@ -172,15 +208,27 @@ class SandPile:
 
                 num_of_topples += 1
                 toppled_sites.append(site)
-                #length
+
+            self.time += 1
 
         # Record observables into the avalanche_stats attributes
-        area = len(np.unique(toppled_sites, axis=0))
+        unique_toppled_sites = np.unique(toppled_sites, axis=0)
 
+        # Calculate 'area' = number of unique toppled sites.
+        area = len(unique_toppled_sites)
+
+        # Calculate radius.
+        difference_i = unique_toppled_sites.T[0] - first_toppled_site[0]
+        difference_j = unique_toppled_sites.T[1] - first_toppled_site[1]
+        radii = np.sqrt(difference_i**2 + difference_j**2)
+        max_radius = max(radii)
+
+        # Record all stats into avalanche_stats.
         avalanche_stat = (self.time,
         num_of_topples,
         area,
-        start_mass - self.mass()
-        )  #length
+        start_mass - self.mass(),
+        max_radius
+        )
 
         self.avalanche_stats[name] = avalanche_stat
