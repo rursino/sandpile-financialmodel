@@ -25,8 +25,12 @@ class SandPile:
         # Track the time of the course of the sandpile.
         self.time = 0
 
-        # Record the observables of an avalanche.
-        self.avalanche_stats = {}
+        # Record the observables of each avalanche.
+        self.time_end_aval = []
+        self.topples = []
+        self.area = []
+        self.lost_mass = []
+        self.radius = []
 
 
     def locate(self, i, j):
@@ -224,11 +228,19 @@ class SandPile:
         max_radius = max(radii)
 
         # Record all stats into avalanche_stats.
-        avalanche_stat = (self.time,
-        num_of_topples,
-        area,
-        start_mass - self.mass(),
-        max_radius
-        )
+        self.time_end_aval.append(self.time)
+        self.topples.append(num_of_topples)
+        self.area.append(area)
+        self.lost_mass.append(self.mass())
+        self.radius.append(max_radius)
 
-        self.avalanche_stats[name] = avalanche_stat
+    def view_avalanche_stats():
+
+        raise NotImplelmentedError()
+
+
+class Observables:
+
+    def __init__(data):
+        self.data = data
+        # self.avalanche
