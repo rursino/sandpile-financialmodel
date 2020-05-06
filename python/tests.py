@@ -5,14 +5,33 @@ import sandpile
 from importlib import reload
 reload(sandpile);
 
-a = sandpile.SandPile(20,20)
 
-num_of_iters = 100
-for _ in range(num_of_iters):
-    n = np.random.randint(1,3)
-    a.drop_sand(n)
-# a.visualise()
+"""INPUTS"""
+length = 20
+width = 20
+num_of_avalanches = 100
 
-a.avalanche("fail")
 
-a.avalanche_stats
+"""FUNCTIONS"""
+def execute_avalanche(sp):
+    no_avalanche = True
+    while no_avalanche:
+        if np.any(sp.grid >= 4):
+            sp.avalanche()
+            no_avalanche = False
+        else:
+            sp.drop_sand()
+
+"""EXECUTION"""
+sp = sandpile.SandPile(length, width)
+
+for i in range(num_of_avalanches):
+    execute_avalanche(sp)
+
+fname = "./output/sandpile_test.pik"
+sp.save_avalanche_stats(fname)
+ob = sandpile.Observables(fname)
+
+ob.histogram(ob.lost_mass)
+plt.plot(ob.mass_history)
+plt.imshow(ob.grid)

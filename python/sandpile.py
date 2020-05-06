@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 import scipy.spatial
 import matplotlib.pyplot as plt
+import pickle
 
 
 class SandPile:
@@ -26,7 +27,8 @@ class SandPile:
         self.time = 0
 
         # Record the observables of each avalanche.
-        self.time_end_aval = []
+        self.aval_duration = []
+        self.num_of_avalanches = 0
         self.topples = []
         self.area = []
         self.lost_mass = []
@@ -171,7 +173,7 @@ class SandPile:
         if increment_time:
             self.time += 1
 
-    def avalanche(self, name):# Other params: start?
+    def avalanche(self):# Other params: start?
         """Run the avalanche causing all sites to topple and store the stats of
         the avalanche in the appropriate variables.
 
@@ -188,6 +190,7 @@ class SandPile:
         num_of_topples = 0
         toppled_sites = []
         start_mass = self.mass()
+        start_time = self.time
 
         # Record first toppled site for calculation of radius.
         first_toppled_site = []
@@ -228,19 +231,98 @@ class SandPile:
         max_radius = max(radii)
 
         # Record all stats into avalanche_stats.
-        self.time_end_aval.append(self.time)
+        self.aval_duration.append(self.time - start_time)
+        self.num_of_avalanches += 1
         self.topples.append(num_of_topples)
         self.area.append(area)
-        self.lost_mass.append(self.mass())
+        self.lost_mass.append(start_mass - self.mass())
         self.radius.append(max_radius)
 
-    def view_avalanche_stats():
+    def view_avalanche_stats(self, aval_index):
+        """View the stats of any avalanche or all avalanches.
 
-        raise NotImplelmentedError()
+        Parameters
+        ==========
+
+        aval_index: int or string
+
+            Index of lists to get any avalanche, or 'all' gives entirety of
+            all lists.
+
+        """
+
+        aval_stats = {}
+
+        if aval_index == "all":
+            aval_stats["Duration"] = self.aval_duration
+            aval_stats["Topples"] = self.topples
+            aval_stats["Area"] = self.area
+            aval_stats["Lost mass"] = self.lost_mass
+            aval_stats["Radius"] = self.radius
+        else:
+            aval_stats["Duration"] = self.aval_duration[aval_index]
+            aval_stats["Topples"] = self.topples[aval_index]
+            aval_stats["Area"] = self.areaaval_index
+            aval_stats["Lost mass"] = self.lost_mass[aval_index]
+            aval_stats["Radius"] = self.radius[aval_index]
+
+        return aval_stats
+
+    def save_avalanche_stats(self, fname):
+        """Creates a dictionary object with all avalanche state and saves it
+        all as a pickle file.
+        This can be used as creating a file for the Observables class.
+
+        Parameters
+        ==========
+
+        fname: string
+
+            Name of output file.
+
+        """
+
+        aval_stats = SandPile.view_avalanche_stats(self, "all")
+        aval_stats["Dimensions"] = (self.length, self.width)
+        aval_stats["Threshold"] = self.threshold
+        aval_stats["Time Elapsed"] = self.time
+        aval_stats["Mass History"] = self.mass_history
+        aval_stats["Grid"] = self.grid
+
+        pickle.dump(aval_stats, open(fname, "wb"))
+
+        print(f"aval_stats dictionary dumped to {fname}!")
+        return aval_stats
 
 
 class Observables:
 
-    def __init__(data):
-        self.data = data
-        # self.avalanche
+    def __init__(self, fname):
+        """This class loads avalanche observables and provides analytic
+        functionals and visualisations.
+        """
+        self.data = pickle.load(open(fname, "rb"))
+
+        self.aval_duration = self.data["Duration"]
+        self.topples = self.data["Topples"]
+        self.area = self.data["Area"]
+        self.lost_mass = self.data["Lost mass"]
+        self.radius = self.data["Radius"]
+
+        self.length = self.data["Dimensions"][0]
+        self.width = self.data["Dimensions"][1]
+        self.threshold = self.data["Threshold"]
+        self.grid = self.data["Grid"]
+
+        self.time_elapsed = self.data["Time Elapsed"]
+        self.mass_history = self.data["Mass History"]
+
+    def histogram(self, stat):
+
+        fig, ax = plt.subplots()
+        ax.hist(stat)
+        ax.set_title("Histogram")
+        ax.set_xlabel("Value")
+        ax.set_ylabel("Frequency")
+        plt.show()
+        plt.close(fig)
