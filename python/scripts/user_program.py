@@ -1,5 +1,7 @@
 import numpy as np
 import sys
+
+sys.path.append("./core")
 from sandpile import SandPile
 
 def execute_avalanche(name):

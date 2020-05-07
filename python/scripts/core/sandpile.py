@@ -34,39 +34,6 @@ class SandPile:
         self.lost_mass = []
         self.radius = []
 
-
-    def locate(self, i, j):
-        """Returns the value of the address (i,j) of the grid.
-        Note: address is in array notation, NOT python notation.
-
-        Parameters
-        ==========
-
-        i: int
-
-            The row number. Must be between 1 and the length of the grid.
-
-        j: int
-
-            The column number. Must be between 1 and the width of the grid.
-
-        """
-
-        if not (0 < i <= self.length):
-            raise ValueError(f"i must be in the range (1, {self.length})")
-
-        if not (0 < j <= self.width):
-            raise ValueError(f"j must be in the range (1, {self.width})")
-
-        else:
-            return self.grid[i-1][j-1]
-
-    def visualise(self, *args, **kwargs):
-        """ Produces a heatmap of the grid.
-        """
-
-        plt.imshow(self.grid, *args, **kwargs)
-
     def plot_mass(self, start_time=None, end_time=None):
         """ Plots the mass of the grid over its lifetime.
 
@@ -262,7 +229,7 @@ class SandPile:
         else:
             aval_stats["Duration"] = self.aval_duration[aval_index]
             aval_stats["Topples"] = self.topples[aval_index]
-            aval_stats["Area"] = self.areaaval_index
+            aval_stats["Area"] = self.area[aval_index]
             aval_stats["Lost mass"] = self.lost_mass[aval_index]
             aval_stats["Radius"] = self.radius[aval_index]
 
@@ -318,11 +285,27 @@ class Observables:
         self.mass_history = self.data["Mass History"]
 
     def histogram(self, stat):
+        """ Produces a histogram of any observable. """
 
         fig, ax = plt.subplots()
         ax.hist(stat)
         ax.set_title("Histogram")
         ax.set_xlabel("Value")
         ax.set_ylabel("Frequency")
-        plt.show()
-        plt.close(fig)
+
+    def prob_dist(self, stat):
+        """ Produces a probability distribution of any observable. """
+
+        raise NotImplementedError()
+
+    def line_plot(self, stat):
+        """ Produces a line plot of any observable. """
+
+        fig, ax = plt.subplots()
+        ax.plot(stat)
+        ax.set_title("Line Plot")
+
+    def visualise_grid(self, *args, **kwargs):
+        """ Produces a heatmap of the grid. """
+
+        plt.imshow(self.grid, *args, **kwargs)

@@ -38,7 +38,7 @@ def example_plotting(output_dir):
     # axes; however, it can fail sometimes.  This allows you to set them
     # manually.
     ax.set_ylim([-0.5, 1.1])
-    fig.savefig("output/example.pdf")
+    fig.savefig("./../output/example.pdf")
     pyplot.close(fig)
 
     # Now for the histogram.  We generate some random data
@@ -48,7 +48,7 @@ def example_plotting(output_dir):
     ax.set_title("Histogram of random data")
     ax.set_xlabel("Value")
     ax.set_ylabel("Frequency")
-    fig.savefig("output/example_histogram.pdf")
+    fig.savefig("./../output/example_histogram.pdf")
     pyplot.close(fig)
 
     # In this lab, you'll also want to show what the grid looks like.  This can
@@ -57,7 +57,7 @@ def example_plotting(output_dir):
     fig, ax = pyplot.subplots()
     ax.imshow(data)
     ax.set_title("Grid plot")
-    fig.savefig("output/example_grid.pdf")
+    fig.savefig("./../output/example_grid.pdf")
     pyplot.close(fig)
 
 
