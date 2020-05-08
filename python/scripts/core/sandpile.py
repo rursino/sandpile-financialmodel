@@ -284,22 +284,46 @@ class Observables:
         self.time_elapsed = self.data["Time Elapsed"]
         self.mass_history = self.data["Mass History"]
 
-    def histogram(self, stat):
-        """ Produces a histogram of any observable. """
+    def histogram(self, stat, density=False):
+        """ Produces a histogram or probability distribution of any observable.
+
+        Parameters
+        =========
+
+        stat: attribute
+
+            Observable to plot.
+
+        density: bool, optional
+
+            If True, histogram is normalised to a probability distribution.
+            If False, histogram is plotted.
+
+            Defaults to False.
+        """
+
+        if density:
+            title = "Probability Distribution"
+        else:
+            title = "Histogram"
 
         fig, ax = plt.subplots()
-        ax.hist(stat)
-        ax.set_title("Histogram")
+        ax.hist(stat, density=density)
+        ax.set_title(title)
         ax.set_xlabel("Value")
         ax.set_ylabel("Frequency")
 
-    def prob_dist(self, stat):
-        """ Produces a probability distribution of any observable. """
-
-        raise NotImplementedError()
-
     def line_plot(self, stat):
-        """ Produces a line plot of any observable. """
+        """ Produces a line plot of any observable.
+
+        Parameters
+        =========
+
+        stat: attribute
+
+            Observable to plot.
+
+        """
 
         fig, ax = plt.subplots()
         ax.plot(stat)
@@ -308,4 +332,5 @@ class Observables:
     def visualise_grid(self, *args, **kwargs):
         """ Produces a heatmap of the grid. """
 
+        fig = plt.figure()
         plt.imshow(self.grid, *args, **kwargs)

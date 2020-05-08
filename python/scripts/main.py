@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 sys.path.append("./core")
 import sandpile
 
+from importlib import reload
+reload(sandpile)
+
 
 """ INPUTS """
 length = 10
@@ -45,14 +48,13 @@ def main():
 
     ob.histogram(ob.radius)
 
-    # ob.prob_dist(ob.radius)
-    #
-    # ob.line_plot(ob.mass_history)
-    #
-    # ob.visualise_grid()
+    ob.histogram(ob.radius, density=1)
+
+    ob.line_plot(ob.mass_history)
+
+    ob.visualise_grid()
 
 
 """ EXECUTION """
-main()
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
