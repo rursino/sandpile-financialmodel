@@ -4,12 +4,11 @@ import sys
 sys.path.append("./core")
 from sandpile import SandPile
 
-def execute_avalanche(name):
+def execute_avalanche():
     no_avalanche = True
     while no_avalanche:
         if np.any(a.grid >= 4):
-            a.avalanche(name)
-            print_avalanche_stats(name, a.avalanche_stats[name])
+            a.avalanche()
             no_avalanche = False
         else:
             a.drop_sand()
@@ -28,16 +27,15 @@ def print_avalanche_stats(name, dict_stat):
 if __name__ == "__main__":
     length = int(sys.argv[1])
     width = int(sys.argv[2])
-    a = SandPile(length, width)
+    sandpile = SandPile(length, width)
 
-    execute_avalanche("The First Avalanche")
+    execute_avalanche()
 
     ask_again = True
     while ask_again:
         x = input("Go again? Answer YES or NO: ")
         if x == "YES":
-            name = input("Name of avalanche? ")
-            execute_avalanche(name)
+            execute_avalanche()
         elif x == "NO":
             ask_again = False
         else:
