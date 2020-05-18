@@ -308,7 +308,7 @@ class Observables:
         else:
             title = "Histogram"
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(20,10))
         ax.hist(stat, density=density)
         ax.set_title(title)
         ax.set_xlabel("Value")
@@ -326,36 +326,51 @@ class Observables:
 
         """
 
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(20,10))
         ax.plot(stat)
         ax.set_title("Line Plot")
 
     def visualise_grid(self, *args, **kwargs):
         """ Produces a heatmap of the grid. """
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=(20,10))
         plt.imshow(self.grid, *args, **kwargs)
 
-    def regression(self, x, y, plot=False):
-        x = np.array(x)
-        y = np.array(y)
-        regression = stats.linregress(x, y)
+    def regression(self, x, y, k=1, plot=False):
+        """ Regresses two variables, with added functionality to enable power
+        law regression (where y=x^k) if k > 1.
 
-        if plot:
-            slope, intercept = regression[:2]
-            plt.plot(x, slope*x + intercept)
-            plt.scatter(x, y)
+        Parameters
+        ==========
 
-        return regression
+        x, y: list-like
 
-    def power_law_regression(self, x, y, k, plot=False):
+            Two variables to regress. x is independent, y is dependent.
+
+        k: int, optional
+
+            Must be greater than 0. If k=1, then regression is linear. If k>1,
+            then regression is a power law.
+
+            Defaults to 1.
+
+        plot: bool, optional
+
+            If True, plots a scatter-plot of x vs. y and a line plot of the
+            regression equation.
+
+            Defaults to False.
+        """
+        assert k > 0, "k must be greater than 0."
+
+        fig = plt.figure(figsize=(20,10))
         x = np.array(x)
         y = np.array(y)**k
         regression = stats.linregress(x, y)
 
         if plot:
             slope, intercept = regression[:2]
-            plt.plot(x, slope*x + intercept)
+            plt.plot(x, slope*x + intercept, color='r')
             plt.scatter(x, y)
 
         return regression
