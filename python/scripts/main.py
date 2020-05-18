@@ -1,3 +1,7 @@
+""" Main program:
+"""
+
+""" IMPORTS """
 import numpy as np
 import sys
 import matplotlib.pyplot as plt
@@ -10,14 +14,19 @@ reload(sandpile)
 
 
 """ INPUTS """
+# Dimensions for grid.
 length = 10
 width = 10
+
+# Requested number of avalanches (by user).
 num_aval_request = 20000
 
+# Initialize sandpile.
 sp = sandpile.SandPile(length, width)
 
 
 """ FUNCTIONS """
+# Execute an avalanche at time of request.
 def execute_avalanches(sp):
     no_avalanche = True
     while no_avalanche:
@@ -27,6 +36,7 @@ def execute_avalanches(sp):
         else:
             sp.drop_sand()
 
+# Print stats for any avalanche.
 def print_avalanche_stats(sp, index):
     aval_stats = sp.view_avalanche_stats(index)
 
@@ -35,7 +45,9 @@ def print_avalanche_stats(sp, index):
     for stat in stats:
         print(f"{stat}: {aval_stats[stat]}")
 
+# Save plots of histograms, line plots and heatmap of grid.
 def save_plots(ob):
+    # Directory to save plots.
     dir = "./../output/plots/"
 
     ob.histogram(ob.aval_duration, density=1)
@@ -63,15 +75,19 @@ def save_plots(ob):
 
 
 def main():
+    # Execute avalanche a set number of times (set from input).
     for i in range(num_aval_request):
         execute_avalanches(sp)
 
-    # print_avalanche_stats(sp, "all")
+    # Print stats of last avalanche.
     print_avalanche_stats(sp, -1)
 
+    # Save sandpile stats to enable initialization of instance of
+    # observables class.
     fname = f"./../output/sandpile_{length}_{width}_{num_aval_request}.pik"
     sp.save_avalanche_stats(fname)
 
+    # Initialize observables class with sandpile stats above and save plots.
     ob = sandpile.Observables(fname)
     save_plots(ob)
 
