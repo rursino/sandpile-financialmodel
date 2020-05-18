@@ -3,7 +3,7 @@
 
 import numpy as np
 import scipy as sp
-import scipy.spatial
+from scipy import spatial, stats
 import matplotlib.pyplot as plt
 import pickle
 
@@ -264,11 +264,12 @@ class SandPile:
 
 class Observables:
 
-    def __init__(self, fname):
+    def __init__(self, data):
         """This class loads avalanche observables and provides analytic
         functionals and visualisations.
         """
-        self.data = pickle.load(open(fname, "rb"))
+        data = pickle.load(open(data, "rb"))
+        self.data = data
 
         self.aval_duration = self.data["Duration"]
         self.topples = self.data["Topples"]
@@ -334,3 +335,27 @@ class Observables:
 
         fig = plt.figure()
         plt.imshow(self.grid, *args, **kwargs)
+
+    def regression(self, x, y, plot=False):
+        x = np.array(x)
+        y = np.array(y)
+        regression = stats.linregress(x, y)
+
+        if plot:
+            slope, intercept = regression[:2]
+            plt.plot(x, slope*x + intercept)
+            plt.scatter(x, y)
+
+        return regression
+
+    def power_law_regression(self, x, y, k, plot=False):
+        x = np.array(x)
+        y = np.array(y)**k
+        regression = stats.linregress(x, y)
+
+        if plot:
+            slope, intercept = regression[:2]
+            plt.plot(x, slope*x + intercept)
+            plt.scatter(x, y)
+
+        return regression
