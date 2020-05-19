@@ -1,4 +1,5 @@
-""" Main program:
+""" Main program: Simulates a sequence of avalanches and saves statistics
+to observables.
 """
 
 """ IMPORTS """
