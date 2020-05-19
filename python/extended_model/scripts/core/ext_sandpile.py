@@ -109,6 +109,54 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
+    def wind(self, direction, speed):
+        """Moves sand grains along the grid with specified direction.
+
+        Parameters
+        ==========
+
+        direction: str
+
+            Direction of wind. Takes either L, R, U or D.
+
+        speed: int
+
+            Amount of grains moved to its neighbour grid.
+
+        """
+
+        if direction == "R":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if j < self.width - 1:
+                            self.grid[i][j+1] += speed
+
+        if direction == "D":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if i < self.length - 1:
+                            self.grid[i+1][j] += speed
+
+        if direction == "L":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if j > 0:
+                            self.grid[i][j-1] += speed
+
+        if direction == "U":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if i > 0:
+                            self.grid[i-1][j] += speed
+
     def topple(self, site, increment_time=False):
         """Topple the specified site.
 
