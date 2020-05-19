@@ -5,6 +5,7 @@ import numpy as np
 import scipy as sp
 from scipy import spatial, stats
 import matplotlib.pyplot as plt
+import seaborn as sns
 import pickle
 
 
@@ -309,10 +310,34 @@ class Observables:
             title = "Histogram"
 
         fig, ax = plt.subplots(figsize=(20,10))
-        ax.hist(stat, density=density)
+        ax.hist(stat, density=density, bins=25)
         ax.set_title(title)
         ax.set_xlabel("Value")
         ax.set_ylabel("Frequency")
+
+    def distpdf(self, stat, hist=False):
+        """ Produces a probability distribution line plot of any observable.
+
+        Parameters
+        =========
+
+        stat: attribute
+
+            Observable to plot.
+
+        hist: bool, optional
+
+            If True, a histogram is plotted with the distribution plot.
+            If False, just the distribution pdf is plotted.
+
+            Defaults to False.
+        """
+
+        plt.figure(figsize=(20,10))
+        sns.distplot(stat, hist=hist, bins=25)
+        plt.title("Probability Distribution")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
 
     def line_plot(self, stat):
         """ Produces a line plot of any observable.
@@ -333,8 +358,9 @@ class Observables:
     def visualise_grid(self, *args, **kwargs):
         """ Produces a heatmap of the grid. """
 
-        fig = plt.figure(figsize=(20,10))
-        plt.imshow(self.grid, *args, **kwargs)
+        plt.figure(figsize=(20,15))
+        sns.heatmap(self.grid, xticklabels=False, yticklabels=False,
+        *args, **kwargs)
 
     def regression(self, x, y, k=1, plot=False):
         """ Regresses two variables, with added functionality to enable power

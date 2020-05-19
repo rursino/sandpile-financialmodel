@@ -52,21 +52,32 @@ def save_plots(ob):
     dir = "./../output/plots/"
 
     ob.histogram(ob.aval_duration, density=1)
-    plt.savefig(f"{dir}aval_duration_pdf.png")
+    plt.savefig(f"{dir}aval_duration_hist.png")
     ob.histogram(ob.topples, density=1)
-    plt.savefig(f"{dir}topples_pdf.png")
+    plt.savefig(f"{dir}topples_hist.png")
     ob.histogram(ob.area, density=1)
-    plt.savefig(f"{dir}area_pdf.png")
+    plt.savefig(f"{dir}area_hist.png")
     ob.histogram(ob.lost_mass, density=1)
-    plt.savefig(f"{dir}lost_mass_pdf.png")
+    plt.savefig(f"{dir}lost_mass_hist.png")
     ob.histogram(ob.radius, density=1)
-    plt.savefig(f"{dir}radius_pdf.png")
+    plt.savefig(f"{dir}radius_hist.png")
 
     ob.line_plot(ob.mass_history)
     plt.savefig(f"{dir}mass_history.png")
 
     ob.visualise_grid()
     plt.savefig(f"{dir}heatmap_grid.png")
+
+    ob.distpdf(ob.aval_duration)
+    plt.savefig(f"{dir}aval_duration_pdf.png")
+    ob.distpdf(ob.topples)
+    plt.savefig(f"{dir}topples_pdf.png")
+    ob.distpdf(ob.area)
+    plt.savefig(f"{dir}area_pdf.png")
+    ob.distpdf(ob.lost_mass)
+    plt.savefig(f"{dir}lost_mass_pdf.png")
+    ob.distpdf(ob.radius)
+    plt.savefig(f"{dir}radius_pdf.png")
 
     x = ob.radius
     y = ob.aval_duration
