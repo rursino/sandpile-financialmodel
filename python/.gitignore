@@ -7,5 +7,4 @@ __pycache__
 .ipynb_checkpoints/
 
 # Output
-/original_model/output/
-/extended_model/output/
+/output/
