@@ -33,7 +33,7 @@ class SandPile:
         self.topples = []
         self.area = []
         self.lost_mass = []
-        self.radius = []
+        self.distance = []
 
     def plot_mass(self, start_time=None, end_time=None):
         """ Plots the mass of the grid over its lifetime.
@@ -144,6 +144,8 @@ class SandPile:
     def avalanche(self):# Other params: start?
         """Run the avalanche causing all sites to topple and store the stats of
         the avalanche in the appropriate variables.
+        For extended sandpile, avalanches are run when the difference between
+        any grid and any of its neighbours reaches a threshold.
 
         Parameters
         ==========
@@ -160,13 +162,13 @@ class SandPile:
         start_mass = self.mass()
         start_time = self.time
 
-        # Record first toppled site for calculation of radius.
+        # Record first toppled site for calculation of distance.
         first_toppled_site = []
 
         # Topple sites until all sites have less than the threshold no.
-        while np.any(self.grid >= 4):
+        while np.any(self.grid >= threshold):
             # Extact sites to topple.
-            topple_locations = np.where(self.grid >= 4)
+            topple_locations = np.where(self.grid >= threshold)
             all_i = topple_locations[0]
             all_j = topple_locations[1]
 
@@ -192,11 +194,11 @@ class SandPile:
         # Calculate 'area' = number of unique toppled sites.
         area = len(unique_toppled_sites)
 
-        # Calculate radius.
+        # Calculate distance.
         difference_i = unique_toppled_sites.T[0] - first_toppled_site[0]
         difference_j = unique_toppled_sites.T[1] - first_toppled_site[1]
-        radii = np.sqrt(difference_i**2 + difference_j**2)
-        max_radius = max(radii)
+        distance = abs(difference_i) + abs(difference_j)
+        max_distance = max(distance)
 
         # Record all stats into avalanche_stats.
         self.aval_duration.append(self.time - start_time)
@@ -204,7 +206,7 @@ class SandPile:
         self.topples.append(num_of_topples)
         self.area.append(area)
         self.lost_mass.append(start_mass - self.mass())
-        self.radius.append(max_radius)
+        self.distance.append(max_distance)
 
     def view_avalanche_stats(self, aval_index):
         """View the stats of any avalanche or all avalanches.
@@ -226,13 +228,13 @@ class SandPile:
             aval_stats["Topples"] = self.topples
             aval_stats["Area"] = self.area
             aval_stats["Lost mass"] = self.lost_mass
-            aval_stats["Radius"] = self.radius
+            aval_stats["Distance"] = self.distance
         else:
             aval_stats["Duration"] = self.aval_duration[aval_index]
             aval_stats["Topples"] = self.topples[aval_index]
             aval_stats["Area"] = self.area[aval_index]
             aval_stats["Lost mass"] = self.lost_mass[aval_index]
-            aval_stats["Radius"] = self.radius[aval_index]
+            aval_stats["Distance"] = self.distance[aval_index]
 
         return aval_stats
 
@@ -276,7 +278,7 @@ class Observables:
         self.topples = self.data["Topples"]
         self.area = self.data["Area"]
         self.lost_mass = self.data["Lost mass"]
-        self.radius = self.data["Radius"]
+        self.distance = self.data["Distance"]
 
         self.length = self.data["Dimensions"][0]
         self.width = self.data["Dimensions"][1]
