@@ -1,6 +1,7 @@
 """ Program establishes a set of subroutines for the NxN sandpile grid.
 """
 
+from itertools import *
 import numpy as np
 import scipy as sp
 from scipy import spatial, stats
