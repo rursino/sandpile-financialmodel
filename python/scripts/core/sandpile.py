@@ -109,6 +109,79 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
+    def wind(self, direction, speed):
+        """Moves sand grains along the grid with specified direction.
+
+        Parameters
+        ==========
+
+        direction: str
+
+            Direction of wind. Takes either L, R, U or D.
+
+        speed: int
+
+            Amount of grains moved to its neighbour grid.
+
+        """
+
+        if direction == "R":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if j < self.width - 1:
+                            self.grid[i][j+1] += speed
+
+        elif direction == "D":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if i < self.length - 1:
+                            self.grid[i+1][j] += speed
+
+        elif direction == "L":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if j > 0:
+                            self.grid[i][j-1] += speed
+
+        elif direction == "U":
+            for i in range(self.length):
+                for j in range(self.width):
+                    if self.grid[i][j] >=  speed:
+                        self.grid[i][j] -= speed
+                        if i > 0:
+                            self.grid[i-1][j] += speed
+
+    def neighbours(self):
+
+        neighbours_dict = {}
+
+        neighbours = lambda x, y : [(xx, yy) for xx in range(x-1, x+2)
+                                       for yy in range(y-1, y+2)
+                                       if (-1 < x < self.width and
+                                           -1 < y < self.length and
+                                           (x != xx or y != yy) and
+                                           (0 <= xx < self.width) and
+                                           (0 <= yy < self.length))]
+
+        for site in product(*(range(n) for n in (self.length, self.width))):
+
+            i, j = site
+
+            neighbour_vals = []
+            for nsite in neighbours(i,j):
+                ii, jj = nsite
+                neighbour_vals.append(self.grid[ii][jj] - self.grid[i][j])
+
+            neighbours_dict[site] = neighbour_vals
+
+        return neighbours_dict
+
     def topple(self, site, increment_time=False):
         """Topple the specified site.
 
@@ -124,6 +197,9 @@ class SandPile:
             Whether to increment one time step or not. Defaults to False.
 
         """
+
+        raise NotImplementedError()
+        # change to -8 and add 1 to the 8 surrounding cells
 
         i, j = site
 
@@ -164,6 +240,13 @@ class SandPile:
 
         # Record first toppled site for calculation of distance.
         first_toppled_site = []
+
+        # # Gather difference of grains between grids and their neighbours.
+        # neighbours = SandPile.neighbours(self)
+        #
+        # # Check for differences between neighbouring grids over the threshold.
+        # for vals in neighbours:
+        #     np.any(neighbours[vals] <= -threshold)
 
         # Topple sites until all sites have less than the threshold no.
         while np.any(self.grid >= threshold):
