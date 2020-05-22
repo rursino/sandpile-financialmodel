@@ -31,7 +31,7 @@ def print_avalanche_stats():
     print(f"Number of topples: {sp_stats['Topples']}")
     print(f"Avalanche area: {sp_stats['Area']}")
     print(f"Mass lost: {sp_stats['Lost mass']}")
-    print("Avalanche radius: {:.2f}".format(sp_stats['Radius']))
+    print("Avalanche distance: {:.2f}".format(sp_stats['Distance']))
     print("\n")
 
 

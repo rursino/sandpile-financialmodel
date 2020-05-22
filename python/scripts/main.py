@@ -42,7 +42,7 @@ def print_avalanche_stats(sp, index):
     aval_stats = sp.view_avalanche_stats(index)
 
     stats = ["Duration", "Topples", "Area",
-    "Lost mass", "Radius"]
+    "Lost mass", "Distance"]
     for stat in stats:
         print(f"{stat}: {aval_stats[stat]}")
 
@@ -59,8 +59,8 @@ def save_plots(ob):
     plt.savefig(f"{dir}area_hist.png")
     ob.histogram(ob.lost_mass, density=1)
     plt.savefig(f"{dir}lost_mass_hist.png")
-    ob.histogram(ob.radius, density=1)
-    plt.savefig(f"{dir}radius_hist.png")
+    ob.histogram(ob.distance, density=1)
+    plt.savefig(f"{dir}distance_hist.png")
 
     ob.line_plot(ob.mass_history)
     plt.savefig(f"{dir}mass_history.png")
@@ -76,10 +76,10 @@ def save_plots(ob):
     plt.savefig(f"{dir}area_pdf.png")
     ob.distpdf(ob.lost_mass)
     plt.savefig(f"{dir}lost_mass_pdf.png")
-    ob.distpdf(ob.radius)
-    plt.savefig(f"{dir}radius_pdf.png")
+    ob.distpdf(ob.distance)
+    plt.savefig(f"{dir}distance_pdf.png")
 
-    x = ob.radius
+    x = ob.distance
     y = ob.aval_duration
     k = 3
     ob.regression(x=x, y=y, k=k, plot=1)

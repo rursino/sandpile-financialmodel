@@ -60,9 +60,9 @@ class SandPile:
 
         plt.plot(time, mass)
 
-    def drop_sand(self, n=1, site=None):
+    def drop_sand(self, n=1, cell=None):
         """Add `n` grains of sand to the grid.  Each grains of sand is added to
-        a random site.
+        a random cell (or site).
 
         This function also increments the time by 1 and update the internal
         `mass_history`.  Depending on how you want to code things, you may wish
@@ -77,15 +77,15 @@ class SandPile:
           The number of grains of sand of drop at this time step.  If left
           unspecified, defaults to 1.
 
-        site: tuple (i,j)
+        cell: tuple (i,j)
 
-          The site on which the grain(s) of sand should be dropped.  If `None`,
-          a random site is used.
+          The cell on which the grain(s) of sand should be dropped.  If `None`,
+          a random cell is used.
 
         """
 
-        if site:
-            i,j = site
+        if cell:
+            i,j = cell
         else:
             i = np.random.randint(self.length)
             j = np.random.randint(self.width)
@@ -139,14 +139,13 @@ class SandPile:
         return neighbours_dict
 
     def topple(self, site, increment_time=False):
-        """Topple the specified site.
-
+        """Topple the specified cell.
         Parameters
         ==========
 
-        site: tuple-like
+        cell: tuple-like
 
-            The address of the site to topple.
+            The address of the cell to topple.
 
         increment_time: bool
 
@@ -157,7 +156,7 @@ class SandPile:
         raise NotImplementedError()
         # change to -8 and add 1 to the 8 surrounding cells
 
-        i, j = site
+        i, j = cell
 
         self.grid[i][j] -= 4
 
@@ -174,7 +173,7 @@ class SandPile:
             self.time += 1
 
     def avalanche(self):# Other params: start?
-        """Run the avalanche causing all sites to topple and store the stats of
+        """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
         any grid and any of its neighbours reaches a threshold.
@@ -190,52 +189,52 @@ class SandPile:
 
         # Initialize avalanche statistics.
         num_of_topples = 0
-        toppled_sites = []
+        toppled_cells = []
         start_mass = self.mass()
         start_time = self.time
 
-        # Record first toppled site for calculation of distance.
-        first_toppled_site = []
+        # Record first toppled cell for calculation of distance.
+        first_toppled_cell = []
 
         # Gather difference of grains between grids and their neighbours.
         neighbours = self.neighbours()
 
         # Check for differences between neighbouring grids over the threshold.
         for vals in neighbours:
-            np.any(neighbours[vals] <= -threshold)
+            np.any(neighbours[vals] <= -self.threshold)
 
         # Topple sites until all sites have less than the threshold no.
-        while np.any(self.grid >= threshold):
+        while np.any(self.grid >= self.threshold):
             # Extact sites to topple.
-            topple_locations = np.where(self.grid >= threshold)
+            topple_locations = np.where(self.grid >= self.threshold)
             all_i = topple_locations[0]
             all_j = topple_locations[1]
 
-            if not first_toppled_site:
-                first_toppled_site.append(all_i[0])
-                first_toppled_site.append(all_j[0])
+            if not first_toppled_cell:
+                first_toppled_cell.append(all_i[0])
+                first_toppled_cell.append(all_j[0])
 
-            # Topple each site and update avalanche statistics.
+            # Topple each cell and update avalanche statistics.
             for topple_number in range(len(all_i)):
 
-                site = (all_i[topple_number], all_j[topple_number])
+                cell = (all_i[topple_number], all_j[topple_number])
 
-                self.topple(site)
+                self.topple(cell)
 
                 num_of_topples += 1
-                toppled_sites.append(site)
+                toppled_cells.append(cell)
 
             self.time += 1
 
         # Record observables into the avalanche_stats attributes
-        unique_toppled_sites = np.unique(toppled_sites, axis=0)
+        unique_toppled_cells = np.unique(toppled_cells, axis=0)
 
-        # Calculate 'area' = number of unique toppled sites.
-        area = len(unique_toppled_sites)
+        # Calculate 'area' = number of unique toppled cells.
+        area = len(unique_toppled_cells)
 
         # Calculate distance.
-        difference_i = unique_toppled_sites.T[0] - first_toppled_site[0]
-        difference_j = unique_toppled_sites.T[1] - first_toppled_site[1]
+        difference_i = unique_toppled_cells.T[0] - first_toppled_cell[0]
+        difference_j = unique_toppled_cells.T[1] - first_toppled_cell[1]
         distance = abs(difference_i) + abs(difference_j)
         max_distance = max(distance)
 

@@ -23,7 +23,7 @@ ob = sandpile.Observables(fname)
 
 """ EXECUTION """
 x = ob.area
-y = ob.radius
+y = ob.distance
 
 def reg(x, y, k):
     fig = plt.figure(figsize=(20,10))
