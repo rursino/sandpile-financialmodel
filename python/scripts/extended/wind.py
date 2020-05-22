@@ -7,16 +7,6 @@ import matplotlib.pyplot as plt
 from itertools import *
 
 
-""" INPUTS """
-grid = np.array([
-[1,4,2,4,5],
-[0,1,6,3,1],
-[3,5,8,2,1],
-[2,1,0,0,7],
-[9,1,4,3,5]
-])
-
-
 """ FUNCTIONS """
 class SandPile():
 
@@ -41,39 +31,67 @@ class SandPile():
             Amount of grains moved to its neighbour grid.
 
         """
+        # Rotate grid to suit indexing for movement of grains
+        grid = self.grid
 
         if direction == "R":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if j < self.width - 1:
-                            self.grid[i][j+1] += speed
-
-        elif direction == "D":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if i < self.length - 1:
-                            self.grid[i+1][j] += speed
-
+            grid = np.rot90(grid, 3)
         elif direction == "L":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if j > 0:
-                            self.grid[i][j-1] += speed
+            grid = np.rot90(grid, 1)
+        elif direction == "D":
+            grid = np.rot90(grid, 2)
 
-        elif direction == "U":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if i > 0:
-                            self.grid[i-1][j] += speed
+
+        # Remove and add grains to each cell according to wind direction
+        # and speed.
+        for cell in product(*(range(n) for n in (self.width, self.length))):
+            i, j = cell
+
+            if grid[i][j] >= speed:
+                lost_mass = speed
+            else:
+                lost_mass = grid[i][j]
+
+            grid[i][j] -= lost_mass
+
+            if direction == "R":
+                ii, jj = i, j + 1
+            elif direction == "L":
+                ii, jj = i, j - 1
+            elif direction == "U":
+                ii, jj = i - 1, j
+            elif direction == "D":
+                ii, jj = i + 1, j
+
+            if ((0 <= ii < self.length) and (0 <= jj < self.width)):
+                grid[ii][jj] += lost_mass
+
+        # Rotate grid back to original axis.
+        if direction == "R":
+            grid = np.rot90(grid, 1)
+        elif direction == "L":
+            grid = np.rot90(grid, 3)
+        elif direction == "D":
+            grid = np.rot90(grid, 2)
+
+        return grid
+
+
+""" INPUTS """
+grid = np.array([
+[1,4,2,4,5],
+[0,1,6,3,1],
+[3,5,8,2,1],
+[2,1,0,0,7],
+[9,1,4,3,5]
+])
+grid
+np.rot90(grid, 3)
+
 
 """ EXECUTION """
 sp = SandPile(grid)
-sp.wind("R", 2)
+og = sp.grid.copy()
+ng = sp.wind("L", 1)
+ng
+ng-og
