@@ -145,7 +145,7 @@ class SandPile:
         """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
-        any grid and any of its neighbours reaches a threshold.
+        any cell and any of its neighbours reaches a threshold.
 
         Parameters
         ==========
