@@ -125,20 +125,20 @@ class SandPile:
                                            (0 <= xx < self.width) and
                                            (0 <= yy < self.length))]
 
-        for site in product(*(range(n) for n in (self.length, self.width))):
+        for cell in product(*(range(n) for n in (self.length, self.width))):
 
-            i, j = site
+            i, j = cell
 
             neighbour_vals = []
-            for nsite in neighbours(i,j):
-                ii, jj = nsite
+            for ncell in neighbours(i,j):
+                ii, jj = ncell
                 neighbour_vals.append(self.grid[ii][jj] - self.grid[i][j])
 
-            neighbours_dict[site] = neighbour_vals
+            neighbours_dict[cell] = neighbour_vals
 
         return neighbours_dict
 
-    def topple(self, site, increment_time=False):
+    def topple(self, cell, increment_time=False):
         """Topple the specified cell.
         Parameters
         ==========
@@ -176,7 +176,7 @@ class SandPile:
         """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
-        any grid and any of its neighbours reaches a threshold.
+        any cell and any of its neighbours reaches a threshold.
 
         Parameters
         ==========
@@ -196,16 +196,16 @@ class SandPile:
         # Record first toppled cell for calculation of distance.
         first_toppled_cell = []
 
-        # Gather difference of grains between grids and their neighbours.
+        # Gather difference of grains between cells and their neighbours.
         neighbours = self.neighbours()
 
-        # Check for differences between neighbouring grids over the threshold.
+        # Check for differences between neighbouring cells over the threshold.
         for vals in neighbours:
             np.any(neighbours[vals] <= -self.threshold)
 
-        # Topple sites until all sites have less than the threshold no.
+        # Topple cells until all cells have less than the threshold no.
         while np.any(self.grid >= self.threshold):
-            # Extact sites to topple.
+            # Extact cells to topple.
             topple_locations = np.where(self.grid >= self.threshold)
             all_i = topple_locations[0]
             all_j = topple_locations[1]
