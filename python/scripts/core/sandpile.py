@@ -110,55 +110,10 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
-    def wind(self, direction, speed):
-        """Moves sand grains along the grid with specified direction.
-
-        Parameters
-        ==========
-
-        direction: str
-
-            Direction of wind. Takes either L, R, U or D.
-
-        speed: int
-
-            Amount of grains moved to its neighbour grid.
-
-        """
-
-        if direction == "R":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if j < self.width - 1:
-                            self.grid[i][j+1] += speed
-
-        elif direction == "D":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if i < self.length - 1:
-                            self.grid[i+1][j] += speed
-
-        elif direction == "L":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if j > 0:
-                            self.grid[i][j-1] += speed
-
-        elif direction == "U":
-            for i in range(self.length):
-                for j in range(self.width):
-                    if self.grid[i][j] >=  speed:
-                        self.grid[i][j] -= speed
-                        if i > 0:
-                            self.grid[i-1][j] += speed
-
     def neighbours(self):
+        """Returns the difference in grains between every cell and its
+        neighbouring cells.
+        """
 
         neighbours_dict = {}
 
@@ -242,12 +197,12 @@ class SandPile:
         # Record first toppled site for calculation of distance.
         first_toppled_site = []
 
-        # # Gather difference of grains between grids and their neighbours.
-        # neighbours = SandPile.neighbours(self)
-        #
-        # # Check for differences between neighbouring grids over the threshold.
-        # for vals in neighbours:
-        #     np.any(neighbours[vals] <= -threshold)
+        # Gather difference of grains between grids and their neighbours.
+        neighbours = self.neighbours()
+
+        # Check for differences between neighbouring grids over the threshold.
+        for vals in neighbours:
+            np.any(neighbours[vals] <= -threshold)
 
         # Topple sites until all sites have less than the threshold no.
         while np.any(self.grid >= threshold):
@@ -265,7 +220,7 @@ class SandPile:
 
                 site = (all_i[topple_number], all_j[topple_number])
 
-                SandPile.topple(self, site)
+                self.topple(site)
 
                 num_of_topples += 1
                 toppled_sites.append(site)
@@ -336,7 +291,7 @@ class SandPile:
 
         """
 
-        aval_stats = SandPile.view_avalanche_stats(self, "all")
+        aval_stats = self.view_avalanche_stats("all")
         aval_stats["Dimensions"] = (self.length, self.width)
         aval_stats["Threshold"] = self.threshold
         aval_stats["Time Elapsed"] = self.time
