@@ -1,6 +1,7 @@
 """ Program establishes a set of subroutines for the NxN sandpile grid.
 """
 
+from itertools import *
 import numpy as np
 import scipy as sp
 from scipy import spatial, stats
@@ -109,9 +110,36 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
+    def neighbours(self):
+        """Returns the difference in grains between every cell and its
+        neighbouring cells.
+        """
+
+        neighbours_dict = {}
+
+        neighbours = lambda x, y : [(xx, yy) for xx in range(x-1, x+2)
+                                       for yy in range(y-1, y+2)
+                                       if (-1 < x < self.width and
+                                           -1 < y < self.length and
+                                           (x != xx or y != yy) and
+                                           (0 <= xx < self.width) and
+                                           (0 <= yy < self.length))]
+
+        for cell in product(*(range(n) for n in (self.length, self.width))):
+
+            i, j = cell
+
+            neighbour_vals = []
+            for ncell in neighbours(i,j):
+                ii, jj = ncell
+                neighbour_vals.append(self.grid[ii][jj] - self.grid[i][j])
+
+            neighbours_dict[cell] = neighbour_vals
+
+        return neighbours_dict
+
     def topple(self, cell, increment_time=False):
         """Topple the specified cell.
-
         Parameters
         ==========
 
@@ -124,6 +152,9 @@ class SandPile:
             Whether to increment one time step or not. Defaults to False.
 
         """
+
+        raise NotImplementedError()
+        # change to -8 and add 1 to the 8 surrounding cells
 
         i, j = cell
 
@@ -164,6 +195,13 @@ class SandPile:
 
         # Record first toppled cell for calculation of distance.
         first_toppled_cell = []
+
+        # Gather difference of grains between cells and their neighbours.
+        neighbours = self.neighbours()
+
+        # Check for differences between neighbouring cells over the threshold.
+        for vals in neighbours:
+            np.any(neighbours[vals] <= -self.threshold)
 
         # Topple cells until all cells have less than the threshold no.
         while np.any(self.grid >= self.threshold):
