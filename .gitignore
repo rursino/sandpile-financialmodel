@@ -2,3 +2,11 @@ report/
 tutor_notes/
 notes.pdf
 project_notes.txt
+
+# Python temporary files
+*.pyc
+*.pyo
+__pycache__
+
+# Output
+/python/output/
