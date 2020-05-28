@@ -402,9 +402,48 @@ class Observables:
         sns.heatmap(self.grid, xticklabels=False, yticklabels=False,
         *args, **kwargs)
 
-    def regression(self, x, y, k=1, plot=False):
-        """ Regresses two variables, with added functionality to enable power
-        law regression (where y=x^k) if k > 1.
+    def powerlaw_fit(self, data, plot=False, xscale="linear", yscale="linear"):
+        """Fits a power law equation to a probability distribution function
+        with slope = b and intercept = log10(c).
+
+        Parameters
+        ==========
+
+        data: array-like
+
+            1-D array to produce frequency distribution and fit power law
+            equation.
+
+        plot: bool, optional
+
+            If True, generates a line plot of x vs. y and of the regression
+            equation.
+
+            Other parameters include: "loglog", "semilogx", "semilogy", which
+            generates line plots with respective log and linear axis scales.
+
+            Defaults to False.
+
+        xscale, yscale: str, optional
+
+            Axis scale of the x-axis and y-axis, respectively.
+
+        """
+
+        x, y = np.unique(data, return_counts=1)
+
+        return self.regression(x, y, "powerlaw", 0, plot, xscale, yscale)
+
+
+
+    def regression(self, x, y, type="linear", remove_zeroes=False, plot=False,
+    xscale="linear", yscale="linear"):
+        """Regresses two variables, with added functionality to enable power
+        law regression (see below).
+
+        Returns:
+
+            slope, intercept, r-value
 
         Parameters
         ==========
@@ -413,30 +452,72 @@ class Observables:
 
             Two variables to regress. x is independent, y is dependent.
 
-        k: int, optional
+        type: str, optional
 
-            Must be greater than 0. If k=1, then regression is linear. If k>1,
-            then regression is a power law.
+            The type of regression to perform.
 
-            Defaults to 1.
+            "linear":  performs linear regression with equation fit y = b*x + c,
+            where slope = b and intercept = c.
+
+            "powerlaw": performs powerlaw regression with equation fit
+            y = c*(x^b), where slope = b and intercept = log10(c).
+            The equation is linearised by takeing log10 on both sides to get
+            log10(y) = log10(c) + b * log10(x).
+
+            Defaults to "linear".
+
+        remove_zeroes: bool, optional
+
+            If True, gathers indices of x and y where x = 0 and removes the
+            values from x and y with these indices.
+            This is useful for removing zeroes in data when performing powerlaw
+            regressions.
+
+            Defaults to False.
 
         plot: bool, optional
 
-            If True, plots a scatter-plot of x vs. y and a line plot of the
-            regression equation.
+            If True, generates a line plot of x vs. y and of the regression
+            equation.
+
+            Other parameters include: "loglog", "semilogx", "semilogy", which
+            generates line plots with respective log and linear axis scales.
 
             Defaults to False.
-        """
-        assert k > 0, "k must be greater than 0."
 
-        fig = plt.figure(figsize=(20,10))
-        x = np.array(x)
-        y = np.array(y)**k
+        xscale, yscale: str, optional
+
+            Axis scale of the x-axis and y-axis, respectively.
+
+        """
+
+        if remove_zeroes:
+            x = x[[i for i in range(len(x)) if x[i]!=0]]
+            y = y[[i for i in range(len(x)) if x[i]!=0]]
+
+        if type == "linear":
+            x = np.array(x)
+            y = np.array(y)
+        elif type == "powerlaw":
+            x = np.log10(x)
+            y = np.log10(y)
+
         regression = stats.linregress(x, y)
 
         if plot:
-            slope, intercept = regression[:2]
-            plt.plot(x, slope*x + intercept, color='r')
-            plt.scatter(x, y)
+            b, c = regression[:2]
 
-        return regression
+            fig = plt.figure(figsize=(20,10))
+
+            if type == "linear":
+                plt.scatter(x, y)
+                plt.plot(x, (b*x + c), color='r')
+            elif type == "powerlaw":
+                plt.scatter(10**x, 10**y)
+                plt.plot(10**x, 10**(b*x + c), color='r')
+                c = 10**c
+
+            plt.xscale(xscale)
+            plt.yscale(yscale)
+
+        return regression[:3]
