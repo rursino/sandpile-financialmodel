@@ -37,8 +37,8 @@ def main():
         sp.save_avalanche_stats(fname)
 
         ob = sandpile.Observables(fname)
-        ob.histogram(ob.topples, density=0)
-        plt.savefig(f"{dir}histogram_{lw}.png")
+        ob.powerlaw_fit(ob.topples, plot=1, xscale="log", yscale="log")
+        plt.savefig(f"{dir}powerlaw_fit{lw}.png")
 
 
 """ EXECUTION """
