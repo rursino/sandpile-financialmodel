@@ -1,4 +1,3 @@
-report/
 tutor_notes/
 notes.pdf
 project_notes.txt
@@ -10,3 +9,7 @@ __pycache__
 
 # Output
 /python/output/
+
+# Reports
+report/
+financial_markets/
