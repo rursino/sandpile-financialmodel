@@ -121,9 +121,7 @@ class SandPile:
                                        for yy in range(y-1, y+2)
                                        if (-1 < x < self.width and
                                            -1 < y < self.length and
-                                           (x != xx or y != yy) and
-                                           (0 <= xx < self.width) and
-                                           (0 <= yy < self.length))]
+                                           (x != xx or y != yy))]
 
         for cell in product(*(range(n) for n in (self.length, self.width))):
 
@@ -132,7 +130,12 @@ class SandPile:
             neighbour_vals = []
             for ncell in neighbours(i,j):
                 ii, jj = ncell
-                neighbour_vals.append(self.grid[ii][jj] - self.grid[i][j])
+                if (0 <= ii < self.length) and (0 <= jj < self.width):
+                    val = self.grid[ii][jj]
+                else:
+                    val = 0
+
+                neighbour_vals.append((ncell, self.grid[i][j] - val))
 
             neighbours_dict[cell] = neighbour_vals
 
@@ -153,26 +156,22 @@ class SandPile:
 
         """
 
-        raise NotImplementedError()
-        # change to -8 and add 1 to the 8 surrounding cells
-
         i, j = cell
 
-        self.grid[i][j] -= 4
+        for ncell in self.neighbours()[cell]:
+            ii, jj = ncell[0]
+            difference = ncell[1]
 
-        if i != 0:
-            self.grid[i-1][j] += 1
-        if i != self.length - 1:
-            self.grid[i+1][j] += 1
-        if j != 0:
-            self.grid[i][j-1] += 1
-        if j != self.width - 1:
-            self.grid[i][j+1] += 1
+            if difference >= self.threshold:
+                self.grid[i][j] -= 1
+
+                if (0 <= ii < self.length) and (0 <= jj < self.width):
+                    self.grid[ii][jj] += 1
 
         if increment_time:
             self.time += 1
 
-    def avalanche(self):# Other params: start?
+    def avalanche(self):
         """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
@@ -199,30 +198,22 @@ class SandPile:
         # Gather difference of grains between cells and their neighbours.
         neighbours = self.neighbours()
 
-        # Check for differences between neighbouring cells over the threshold.
-        for vals in neighbours:
-            np.any(neighbours[vals] <= -self.threshold)
-
         # Topple cells until all cells have less than the threshold no.
-        while np.any(self.grid >= self.threshold):
-            # Extact cells to topple.
-            topple_locations = np.where(self.grid >= self.threshold)
-            all_i = topple_locations[0]
-            all_j = topple_locations[1]
-
-            if not first_toppled_cell:
-                first_toppled_cell.append(all_i[0])
-                first_toppled_cell.append(all_j[0])
-
-            # Topple each cell and update avalanche statistics.
-            for topple_number in range(len(all_i)):
-
-                cell = (all_i[topple_number], all_j[topple_number])
-
+        cells_to_topple = self.check_threshold()
+        while cells_to_topple:
+            for cell in cells_to_topple:
                 self.topple(cell)
 
-                num_of_topples += 1
+                if not first_toppled_cell:
+                    first_toppled_cell.append(cell[0])
+                    first_toppled_cell.append(cell[1])
+
                 toppled_cells.append(cell)
+                num_of_topples += 1
+
+
+            cells_to_topple = self.check_threshold()
+
 
             self.time += 1
 
