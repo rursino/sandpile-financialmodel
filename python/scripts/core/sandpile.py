@@ -110,6 +110,25 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
+    def check_threshold(self):
+        """Returns the cells to topple by detecting the cells with neighbours
+        that satisfy the condition that the difference in grains is at least
+        the threshold set from the initialisation of the class.
+        """
+
+        neighbours = self.neighbours()
+
+        cells_to_topple = []
+        for cell in neighbours:
+            ncells = neighbours[cell]
+
+            differences = np.array(list(zip(*ncells))[1])
+
+            if np.any(differences >= self.threshold):
+                cells_to_topple.append(cell)
+
+        return cells_to_topple
+
     def neighbours(self):
         """Returns the difference in grains between every cell and its
         neighbouring cells.
@@ -290,7 +309,6 @@ class SandPile:
 
         pickle.dump(aval_stats, open(fname, "wb"))
 
-        print(f"aval_stats dictionary dumped to {fname}!")
         return aval_stats
 
 
