@@ -1,14 +1,28 @@
-""" Program establishes a set of subroutines for the NxN sandpile grid.
+""" THE EXTENDED SANDPILE MODEL (NO. 1):
+This program establishes the set of functions to form an extended form of
+the sandpile model with a set of subroutines for the NxN sandpile grid.
+In this extended version, the toppling procedure and conditions to set a topple
+are more advanced to make sandpile topples and avalanches more realistic from
+the basic version.
+
+Details:
+- Toppling occurs when a cell has a certain amount of grains more than any of
+its 8 surrounding neighbours.
+- Toppling consists of a loss of 8 grains at the toppled cell and adding 1
+grain to each of its 8 neighbouring cells.
+
 """
+
+
+""" IMPORTS """
 
 from itertools import *
 import numpy as np
-import scipy as sp
-from scipy import spatial, stats
 import matplotlib.pyplot as plt
-import seaborn as sns
 import pickle
 
+
+""" FUNCTIONS """
 
 class SandPile:
 
@@ -110,6 +124,25 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
+    def check_threshold(self):
+        """Returns the cells to topple by detecting the cells with neighbours
+        that satisfy the condition that the difference in grains is at least
+        the threshold set from the initialisation of the class.
+        """
+
+        neighbours = self.neighbours()
+
+        cells_to_topple = []
+        for cell in neighbours:
+            ncells = neighbours[cell]
+
+            differences = np.array(list(zip(*ncells))[1])
+
+            if np.any(differences >= self.threshold):
+                cells_to_topple.append(cell)
+
+        return cells_to_topple
+
     def neighbours(self):
         """Returns the difference in grains between every cell and its
         neighbouring cells.
@@ -121,9 +154,7 @@ class SandPile:
                                        for yy in range(y-1, y+2)
                                        if (-1 < x < self.width and
                                            -1 < y < self.length and
-                                           (x != xx or y != yy) and
-                                           (0 <= xx < self.width) and
-                                           (0 <= yy < self.length))]
+                                           (x != xx or y != yy))]
 
         for cell in product(*(range(n) for n in (self.length, self.width))):
 
@@ -132,7 +163,12 @@ class SandPile:
             neighbour_vals = []
             for ncell in neighbours(i,j):
                 ii, jj = ncell
-                neighbour_vals.append(self.grid[ii][jj] - self.grid[i][j])
+                if (0 <= ii < self.length) and (0 <= jj < self.width):
+                    val = self.grid[ii][jj]
+                else:
+                    val = 0
+
+                neighbour_vals.append((ncell, self.grid[i][j] - val))
 
             neighbours_dict[cell] = neighbour_vals
 
@@ -153,26 +189,22 @@ class SandPile:
 
         """
 
-        raise NotImplementedError()
-        # change to -8 and add 1 to the 8 surrounding cells
-
         i, j = cell
 
-        self.grid[i][j] -= 4
+        for ncell in self.neighbours()[cell]:
+            ii, jj = ncell[0]
+            difference = ncell[1]
 
-        if i != 0:
-            self.grid[i-1][j] += 1
-        if i != self.length - 1:
-            self.grid[i+1][j] += 1
-        if j != 0:
-            self.grid[i][j-1] += 1
-        if j != self.width - 1:
-            self.grid[i][j+1] += 1
+            if difference >= self.threshold:
+                self.grid[i][j] -= 1
+
+                if (0 <= ii < self.length) and (0 <= jj < self.width):
+                    self.grid[ii][jj] += 1
 
         if increment_time:
             self.time += 1
 
-    def avalanche(self):# Other params: start?
+    def avalanche(self):
         """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
@@ -199,30 +231,21 @@ class SandPile:
         # Gather difference of grains between cells and their neighbours.
         neighbours = self.neighbours()
 
-        # Check for differences between neighbouring cells over the threshold.
-        for vals in neighbours:
-            np.any(neighbours[vals] <= -self.threshold)
-
         # Topple cells until all cells have less than the threshold no.
-        while np.any(self.grid >= self.threshold):
-            # Extact cells to topple.
-            topple_locations = np.where(self.grid >= self.threshold)
-            all_i = topple_locations[0]
-            all_j = topple_locations[1]
-
-            if not first_toppled_cell:
-                first_toppled_cell.append(all_i[0])
-                first_toppled_cell.append(all_j[0])
-
+        cells_to_topple = self.check_threshold()
+        while cells_to_topple:
             # Topple each cell and update avalanche statistics.
-            for topple_number in range(len(all_i)):
-
-                cell = (all_i[topple_number], all_j[topple_number])
-
+            for cell in cells_to_topple:
                 self.topple(cell)
 
-                num_of_topples += 1
+                if not first_toppled_cell:
+                    first_toppled_cell.append(cell[0])
+                    first_toppled_cell.append(cell[1])
+
                 toppled_cells.append(cell)
+                num_of_topples += 1
+
+            cells_to_topple = self.check_threshold()
 
             self.time += 1
 
@@ -299,144 +322,4 @@ class SandPile:
 
         pickle.dump(aval_stats, open(fname, "wb"))
 
-        print(f"aval_stats dictionary dumped to {fname}!")
         return aval_stats
-
-
-class Observables:
-
-    def __init__(self, data):
-        """This class loads avalanche observables and provides analytic
-        functionals and visualisations.
-        """
-        data = pickle.load(open(data, "rb"))
-        self.data = data
-
-        self.aval_duration = self.data["Duration"]
-        self.topples = self.data["Topples"]
-        self.area = self.data["Area"]
-        self.lost_mass = self.data["Lost mass"]
-        self.distance = self.data["Distance"]
-
-        self.length = self.data["Dimensions"][0]
-        self.width = self.data["Dimensions"][1]
-        self.threshold = self.data["Threshold"]
-        self.grid = self.data["Grid"]
-
-        self.time_elapsed = self.data["Time Elapsed"]
-        self.mass_history = self.data["Mass History"]
-
-    def histogram(self, stat, density=False):
-        """ Produces a histogram or probability distribution of any observable.
-
-        Parameters
-        =========
-
-        stat: attribute
-
-            Observable to plot.
-
-        density: bool, optional
-
-            If True, histogram is normalised to a probability distribution.
-            If False, histogram is plotted.
-
-            Defaults to False.
-        """
-
-        if density:
-            title = "Probability Distribution"
-        else:
-            title = "Histogram"
-
-        fig, ax = plt.subplots(figsize=(20,10))
-        ax.hist(stat, density=density, bins=25)
-        ax.set_title(title)
-        ax.set_xlabel("Value")
-        ax.set_ylabel("Frequency")
-
-    def distpdf(self, stat, hist=False):
-        """ Produces a probability distribution line plot of any observable.
-
-        Parameters
-        =========
-
-        stat: attribute
-
-            Observable to plot.
-
-        hist: bool, optional
-
-            If True, a histogram is plotted with the distribution plot.
-            If False, just the distribution pdf is plotted.
-
-            Defaults to False.
-        """
-
-        plt.figure(figsize=(20,10))
-        sns.distplot(stat, hist=hist, bins=25)
-        plt.title("Probability Distribution")
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
-
-    def line_plot(self, stat):
-        """ Produces a line plot of any observable.
-
-        Parameters
-        =========
-
-        stat: attribute
-
-            Observable to plot.
-
-        """
-
-        fig, ax = plt.subplots(figsize=(20,10))
-        ax.plot(stat)
-        ax.set_title("Line Plot")
-
-    def visualise_grid(self, *args, **kwargs):
-        """ Produces a heatmap of the grid. """
-
-        plt.figure(figsize=(20,15))
-        sns.heatmap(self.grid, xticklabels=False, yticklabels=False,
-        *args, **kwargs)
-
-    def regression(self, x, y, k=1, plot=False):
-        """ Regresses two variables, with added functionality to enable power
-        law regression (where y=x^k) if k > 1.
-
-        Parameters
-        ==========
-
-        x, y: list-like
-
-            Two variables to regress. x is independent, y is dependent.
-
-        k: int, optional
-
-            Must be greater than 0. If k=1, then regression is linear. If k>1,
-            then regression is a power law.
-
-            Defaults to 1.
-
-        plot: bool, optional
-
-            If True, plots a scatter-plot of x vs. y and a line plot of the
-            regression equation.
-
-            Defaults to False.
-        """
-        assert k > 0, "k must be greater than 0."
-
-        fig = plt.figure(figsize=(20,10))
-        x = np.array(x)
-        y = np.array(y)**k
-        regression = stats.linregress(x, y)
-
-        if plot:
-            slope, intercept = regression[:2]
-            plt.plot(x, slope*x + intercept, color='r')
-            plt.scatter(x, y)
-
-        return regression

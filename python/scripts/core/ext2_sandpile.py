@@ -1,11 +1,12 @@
-""" THE BASIC SANDPILE MODEL:
-This program establishes the set of functions to form the basic form of
+""" THE EXTENDED SANDPILE MODEL (NO. 2):
+This program establishes the set of functions to form an extended form of
 the sandpile model with a set of subroutines for the NxN sandpile grid.
+In this extended version, the toppling procedure is more advanced to make
+sandpile topples and avalanches more realistic from the basic version.
 
 Details:
-- Toppling simply occurs when a cell has 4 or more grains of sand at any time.
-- Toppling consists of a loss of 4 grains at the toppled cell and adding 1
-grain to each neighbouring cell to its left, right, up and down.
+- Toppling occurs when...
+- Toppling consists of...
 
 """
 
@@ -135,23 +136,24 @@ class SandPile:
 
         """
 
+        neighbours = lambda x, y : [(xx, yy) for xx in range(x-1, x+2)
+                                       for yy in range(y-1, y+2)
+                                       if (-1 < x < self.width and
+                                           -1 < y < self.length and
+                                           (x != xx or y != yy))]
+
         i, j = cell
 
-        self.grid[i][j] -= 4
+        for ncell in neighbours(i, j):
+            ii, jj = ncell
 
-        if i != 0:
-            self.grid[i-1][j] += 1
-        if i != self.length - 1:
-            self.grid[i+1][j] += 1
-        if j != 0:
-            self.grid[i][j-1] += 1
-        if j != self.width - 1:
-            self.grid[i][j+1] += 1
+            if (0 <= ii < self.length) and (0 <= jj < self.width):
+                self.grid[ii][jj] += 1
 
         if increment_time:
             self.time += 1
 
-    def avalanche(self):# Other params: start?
+    def avalanche(self):
         """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
@@ -266,5 +268,4 @@ class SandPile:
 
         pickle.dump(aval_stats, open(fname, "wb"))
 
-        print(f"aval_stats dictionary dumped to {fname}!")
         return aval_stats
