@@ -1,12 +1,4 @@
-""" THE BASIC SANDPILE MODEL:
-This program establishes the set of functions to form the basic form of
-the sandpile model with a set of subroutines for the NxN sandpile grid.
-
-Details:
-- Toppling simply occurs when a cell has 4 or more grains of sand at any time.
-- Toppling consists of a loss of 4 grains at the toppled cell and adding 1
-grain to each neighbouring cell to its left, right, up and down.
-
+"""
 """
 
 
@@ -21,6 +13,18 @@ import pickle
 """ FUNCTIONS """
 
 class SandPile:
+
+    """ THE BASIC SANDPILE MODEL:
+    This program establishes the set of functions to form the basic form of
+    the sandpile model with a set of subroutines for the NxN sandpile grid.
+
+    Details:
+    - Toppling simply occurs when a cell has 4 or more grains of sand at any
+    time.
+    - Toppling consists of a loss of 4 grains at the toppled cell and adding 1
+    grain to each neighbouring cell to its left, right, up and down.
+
+    """
 
     def __init__(self, length, width, threshold=4):
         """Initialize a sandpile with the specified length and width."""
@@ -276,3 +280,166 @@ class SandPile:
 
         print(f"aval_stats dictionary dumped to {fname}!")
         return aval_stats
+
+
+class SandPileEXT1(SandPile):
+    """ THE EXTENDED SANDPILE MODEL (NO. 1):
+    This program establishes the set of functions to form an extended form of
+    the sandpile model with a set of subroutines for the NxN sandpile grid.
+    In this extended version, the toppling procedure is more advanced to make
+    sandpile topples and avalanches more realistic from the basic version.
+
+    Details:
+    - Toppling occurs when there is at least one cell with at least 8 grains.
+    - Toppling consists of distributing 8 grains from one cell to each of its
+    8 surrounding neighbours (or the grain falls outside of the grid).
+
+    """
+
+    def __init__(self, length, width, threshold=8):
+        """Initialize a sandpile with the specified length and width."""
+        super().__init__(length, width, threshold=threshold)
+
+    def check_threshold(self):
+        """Returns the cells to topple because they contain a number of grains
+        that is at or over the threshold set from the initialisation of the
+        class.
+        """
+
+        return list(zip(*np.where(self.grid >= self.threshold)))
+
+    def topple(self, cell, increment_time=False):
+        """Topple the specified cell.
+        Parameters
+        ==========
+
+        cell: tuple-like
+
+            The address of the cell to topple.
+
+        increment_time: bool
+
+            Whether to increment one time step or not. Defaults to False.
+
+        """
+
+        neighbours = lambda x, y : [(xx, yy) for xx in range(x-1, x+2)
+                                       for yy in range(y-1, y+2)
+                                       if (-1 < x < self.width and
+                                           -1 < y < self.length and
+                                           (x != xx or y != yy))]
+
+        i, j = cell
+
+        self.grid[i][j] -= 8
+
+        for ncell in neighbours(i, j):
+            ii, jj = ncell
+
+            if (0 <= ii < self.length) and (0 <= jj < self.width):
+                self.grid[ii][jj] += 1
+
+        if increment_time:
+            self.time += 1
+
+
+class SandPileEXT2(SandPile):
+
+    """ THE EXTENDED SANDPILE MODEL (NO. 2):
+    This program establishes the set of functions to form an extended form of
+    the sandpile model with a set of subroutines for the NxN sandpile grid.
+    In this extended version, the toppling procedure and conditions to set a
+    topple are more advanced to make sandpile topples and avalanches more
+    realistic from the basic version.
+
+    Details:
+    - Toppling occurs when a cell has a certain amount of grains more than any
+    of its 8 surrounding neighbours.
+    - Toppling consists of a loss of 8 grains at the toppled cell and adding 1
+    grain to each of its 8 neighbouring cells.
+
+    """
+
+    def __init__(self, length, width, threshold=8):
+        """Initialize a sandpile with the specified length and width."""
+        super().__init__(length, width, threshold=threshold)
+
+    def check_threshold(self):
+        """Returns the cells to topple by detecting the cells with neighbours
+        that satisfy the condition that the difference in grains is at least
+        the threshold set from the initialisation of the class.
+        """
+
+        neighbours = self.neighbours()
+
+        cells_to_topple = []
+        for cell in neighbours:
+            ncells = neighbours[cell]
+
+            differences = np.array(list(zip(*ncells))[1])
+
+            if np.any(differences >= self.threshold):
+                cells_to_topple.append(cell)
+
+        return cells_to_topple
+
+    def neighbours(self):
+        """Returns the difference in grains between every cell and its
+        neighbouring cells.
+        """
+
+        neighbours_dict = {}
+
+        neighbours = lambda x, y : [(xx, yy) for xx in range(x-1, x+2)
+                                       for yy in range(y-1, y+2)
+                                       if (-1 < x < self.width and
+                                           -1 < y < self.length and
+                                           (x != xx or y != yy))]
+
+        for cell in product(*(range(n) for n in (self.length, self.width))):
+
+            i, j = cell
+
+            neighbour_vals = []
+            for ncell in neighbours(i,j):
+                ii, jj = ncell
+                if (0 <= ii < self.length) and (0 <= jj < self.width):
+                    val = self.grid[ii][jj]
+                else:
+                    val = 0
+
+                neighbour_vals.append((ncell, self.grid[i][j] - val))
+
+            neighbours_dict[cell] = neighbour_vals
+
+        return neighbours_dict
+
+    def topple(self, cell, increment_time=False):
+        """Topple the specified cell.
+        Parameters
+        ==========
+
+        cell: tuple-like
+
+            The address of the cell to topple.
+
+        increment_time: bool
+
+            Whether to increment one time step or not. Defaults to False.
+
+        """
+
+        i, j = cell
+
+        for ncell in self.neighbours()[cell]:
+            ii, jj = ncell[0]
+            difference = ncell[1]
+
+            if difference >= self.threshold:
+                self.grid[i][j] -= 1
+
+                if (0 <= ii < self.length) and (0 <= jj < self.width):
+                    self.grid[ii][jj] += 1
+
+        if increment_time:
+            self.time += 1

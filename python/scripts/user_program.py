@@ -7,7 +7,7 @@ import numpy as np
 import sys
 
 sys.path.append("./core")
-import sandpile as sandpile
+import sandpile
 
 
 """ FUNCTIONS """
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     width = int(input("Set the width of the sandpile: "))
 
     # Initialize an instance of the sandpile class.
-    my_sandpile = sandpile.SandPile(length, width)
+    my_sandpile = sandpile.SandPileEXT2(length, width)
 
     # Execute an avalanche from criteria set from function definition and print
     # stats.
