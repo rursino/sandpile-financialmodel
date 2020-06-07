@@ -120,6 +120,14 @@ class SandPile:
 
         return (np.sum(self.grid))/(self.length * self.width)
 
+    def check_threshold(self):
+        """Returns the cells to topple because they contain a number of grains
+        that is at or over the threshold set from the initialisation of the
+        class.
+        """
+
+        return list(zip(*np.where(self.grid >= self.threshold)))
+
     def topple(self, cell, increment_time=False):
         """Topple the specified cell.
         Parameters
@@ -176,7 +184,7 @@ class SandPile:
         first_toppled_cell = []
 
         # Topple cells until all cells have less than the threshold no.
-        cells_to_topple = list(zip(*np.where(self.grid >= self.threshold)))
+        cells_to_topple = self.check_threshold()
         while cells_to_topple:
             # Topple each cell and update avalanche statistics.
             for cell in cells_to_topple:
@@ -189,7 +197,7 @@ class SandPile:
                 toppled_cells.append(cell)
                 num_of_topples += 1
 
-            cells_to_topple = list(zip(*np.where(self.grid >= self.threshold)))
+            cells_to_topple = self.check_threshold()
 
             self.time += 1
 

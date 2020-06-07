@@ -7,16 +7,17 @@ import numpy as np
 import sys
 
 sys.path.append("./core")
-import sandpile
+import sandpile as sandpile
 
 
 """ FUNCTIONS """
 # Execute avalanche only when at least one grid has 4 or more grains of sand,
 # otherwise continue to drop grains at random grid locations.
+
 def execute_avalanche():
     no_avalanche = True
     while no_avalanche:
-        if np.any(my_sandpile.grid >= 4):
+        if my_sandpile.check_threshold():
             my_sandpile.avalanche()
             no_avalanche = False
         else:

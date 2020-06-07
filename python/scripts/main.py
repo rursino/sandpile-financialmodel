@@ -11,7 +11,8 @@ import matplotlib.pyplot as plt
 import pickle
 
 sys.path.append("./core")
-import sandpile
+import sandpile as sandpile
+import observables
 
 from importlib import reload
 reload(sandpile)
@@ -178,7 +179,7 @@ if __name__ == "__main__":
     main()
 
 fname = f"./../output/sandpile_{length}_{width}_{num_aval_request}.pik"
-ob = sandpile.Observables(fname)
+ob = observables.Observables(fname)
 ob.histogram(ob.area, density=1)
 ob.line_plot(ob.mass_history)
 ob.visualise_grid()
