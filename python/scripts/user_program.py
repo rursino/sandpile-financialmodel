@@ -44,7 +44,8 @@ if __name__ == "__main__":
     width = int(input("Set the width of the sandpile: "))
 
     # Initialize an instance of the sandpile class.
-    my_sandpile = sandpile.SandPileEXT2(length, width)
+    sandpile_class = sandpile.SandPileEXT1
+    my_sandpile = sandpile_class(length, width)
 
     # Execute an avalanche from criteria set from function definition and print
     # stats.

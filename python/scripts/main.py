@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import pickle
 
 sys.path.append("./core")
-import sandpile as sandpile
+import sandpile
 import observables
 
 from importlib import reload
@@ -20,14 +20,15 @@ reload(sandpile)
 
 """ INPUTS """
 # Dimensions for grid.
-length = 15
-width = 15
+length = 5
+width = 5
 
 # Requested number of avalanches (by user).
-num_aval_request = 5000
+num_aval_request = 500
 
 # Initialize sandpile.
-sp = sandpile.SandPile(length, width)
+sandpile_class = sandpile.SandPile
+sp = sandpile_class(length, width)
 
 
 """ FUNCTIONS """
@@ -156,7 +157,7 @@ def main():
     print(f"aval_stats dictionary dumped to {fname}!\n")
 
     # Initialize observables class with sandpile stats above and save plots.
-    ob = sandpile.Observables(fname)
+    ob = observables.Observables(fname)
 
     # Directory to save plots.
     dir = f"./../output/plots/{length}_{width}_{num_aval_request}/"
@@ -178,10 +179,10 @@ def main():
 if __name__ == "__main__":
     main()
 
-fname = f"./../output/sandpile_{length}_{width}_{num_aval_request}.pik"
-ob = observables.Observables(fname)
-ob.histogram(ob.area, density=1)
-ob.line_plot(ob.mass_history)
-ob.visualise_grid()
-ob.distpdf(ob.area)
-ob.powerlaw_fit(ob.area, 1, "log", "log")
+# fname = f"./../output/sandpile_{length}_{width}_{num_aval_request}.pik"
+# ob = observables.Observables(fname)
+# ob.histogram(ob.area, density=1)
+# ob.line_plot(ob.mass_history)
+# ob.visualise_grid()
+# ob.distpdf(ob.area)
+# ob.powerlaw_fit(ob.area, 1, "log", "log")

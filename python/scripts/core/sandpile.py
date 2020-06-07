@@ -1,4 +1,5 @@
-"""
+""" A script that contains the basic sandpile model and two extensions of the
+basic model. The two extensions are subclasses to the basic sandpile class.
 """
 
 
