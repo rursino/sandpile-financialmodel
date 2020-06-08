@@ -14,20 +14,21 @@ sys.path.append("./core")
 import sandpile
 import observables
 
-from importlib import reload
-reload(sandpile)
+# from importlib import reload
+# reload(sandpile)
+# reload(observables)
 
 
 """ INPUTS """
 # Dimensions for grid.
-length = 5
-width = 5
+length = int(sys.argv[1])
+width = int(sys.argv[2])
 
 # Requested number of avalanches (by user).
-num_aval_request = 500
+num_aval_request = 20000
 
 # Initialize sandpile.
-sandpile_class = sandpile.SandPile
+sandpile_class = sandpile.SandPileEXT2
 sp = sandpile_class(length, width)
 
 
@@ -107,13 +108,16 @@ def save_plots(ob, dir):
     plt.savefig(f"{dir}heatmap_grid.png")
     plt.clf()
 
-    x = ob.distance
-    y = ob.aval_duration
-    type = "linear"
-    regression = ob.regression(x, y, type, 0, 1, "log", "log")
-    plt.savefig(f"{dir}reg_avalduration_{type}.png")
-    plt.clf()
-    pickle.dump(regression, open(f"{dir}reg_avalduration_{type}", "wb"))
+    # x = ob.distance
+    # y = ob.aval_duration
+    # types = "linear", "powerlaw"
+    # scales = "linear", "log"
+    # remove_zeroes = 0, 1
+    # for (type, scale, rz) in zip(types, scales, remove_zeroes):
+    #     regression = ob.regression(x, y, type, rz, 1, scale, scale)
+    #     plt.savefig(f"{dir}reg_avalduration_{type}.png")
+    #     plt.clf()
+    #     pickle.dump(regression, open(f"{dir}reg_avalduration_{type}.pik", "wb"))
 
 
 def main():
@@ -121,6 +125,7 @@ def main():
     print("\n"+"="*30)
     print("MAIN.PY: OUTPUT FOR EXTENDED SANDPILE AVALANCHE")
     print("="*30+"\n\n")
+    print(f"\nDimensions: {length} {width}")
     sleep(1)
 
     # Execute avalanche a set number of times (set from input).
@@ -152,7 +157,7 @@ def main():
         sleep(1)
     print("\n")
 
-    fname = f"./../output/sandpile_{length}_{width}_{num_aval_request}.pik"
+    fname = f"./../output/{sandpile_class.__name__}_{length}_{width}_{num_aval_request}.pik"
     sp.save_avalanche_stats(fname)
     print(f"aval_stats dictionary dumped to {fname}!\n")
 
@@ -160,12 +165,15 @@ def main():
     ob = observables.Observables(fname)
 
     # Directory to save plots.
-    dir = f"./../output/plots/{length}_{width}_{num_aval_request}/"
-    if os.path.isdir(dir):
-        save_plots(ob, dir)
-    else:
+    dir = f"./../output/plots/{sandpile_class.__name__}/"
+    if not os.path.isdir(dir):
         os.mkdir(dir)
-        save_plots(ob, dir)
+
+    dir += f"{length}_{width}_{num_aval_request}/"
+    if not os.path.isdir(dir):
+        os.mkdir(dir)
+
+    save_plots(ob, dir)
 
     print(f"Figures saved to directory {dir}")
     print("\n"+"-"*30+"\n")
@@ -178,11 +186,3 @@ def main():
 """ EXECUTION """
 if __name__ == "__main__":
     main()
-
-# fname = f"./../output/sandpile_{length}_{width}_{num_aval_request}.pik"
-# ob = observables.Observables(fname)
-# ob.histogram(ob.area, density=1)
-# ob.line_plot(ob.mass_history)
-# ob.visualise_grid()
-# ob.distpdf(ob.area)
-# ob.powerlaw_fit(ob.area, 1, "log", "log")

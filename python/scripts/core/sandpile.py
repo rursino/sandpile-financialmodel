@@ -279,7 +279,6 @@ class SandPile:
 
         pickle.dump(aval_stats, open(fname, "wb"))
 
-        print(f"aval_stats dictionary dumped to {fname}!")
         return aval_stats
 
 

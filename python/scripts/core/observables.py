@@ -202,8 +202,8 @@ class Observables:
         """
 
         if remove_zeroes:
-            x = x[[i for i in range(len(x)) if x[i]!=0]]
-            y = y[[i for i in range(len(x)) if x[i]!=0]]
+            x = [x[i] for i in range(len(x)) if x[i]!=0]
+            y = [y[i] for i in range(len(x)) if x[i]!=0]
 
         if type == "linear":
             x = np.array(x)
