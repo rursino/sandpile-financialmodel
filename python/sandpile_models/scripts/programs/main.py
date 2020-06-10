@@ -10,7 +10,7 @@ from time import sleep
 import matplotlib.pyplot as plt
 import pickle
 
-sys.path.append("./core")
+sys.path.append("./../core")
 import sandpile
 import observables
 
@@ -25,11 +25,23 @@ length = int(sys.argv[1])
 width = int(sys.argv[2])
 
 # Requested number of avalanches (by user).
-num_aval_request = 20000
+num_aval_request = 2000
 
 # Initialize sandpile.
-sandpile_class = sandpile.SandPileEXT2
+sandpile_class = sandpile.SandPile
 sp = sandpile_class(length, width)
+
+# Directories
+DIRECTORY = f"./../../output/"
+MODEL_DIR = f"{sandpile_class.__name__}/"
+
+dir = DIRECTORY + MODEL_DIR
+if not os.path.isdir(dir):
+    os.mkdir(dir)
+
+dir += f"{length}_{width}_{num_aval_request}/"
+if not os.path.isdir(dir):
+    os.mkdir(dir)
 
 
 """ FUNCTIONS """
@@ -37,14 +49,14 @@ def progress_bar(func):
     def wrapper(*args, **kwargs):
         func(*args, **kwargs)
 
-        i = args[-1] + 1
+        index = args[-1] + 1
         total = num_aval_request
-        ratio = i/total
+        ratio = index/total
 
         sys.stdout.write('\r')
         sys.stdout.write("[%-20s] %d%% %i/%i" % ('='*int(20*ratio),
         (100*ratio),
-        i,
+        index,
         total))
         sys.stdout.flush()
 
@@ -52,14 +64,14 @@ def progress_bar(func):
 
 # Execute an avalanche at time of request.
 @progress_bar
-def execute_avalanches(sp, i):
+def execute_avalanches(sp, index, n=1, cell=None, increment_time=False):
     no_avalanche = True
     while no_avalanche:
         if sp.check_threshold():
-            sp.avalanche()
+            sp.avalanche(increment_time)
             no_avalanche = False
         else:
-            sp.drop_sand()
+            sp.drop_sand(cell=cell)
 
 # Print stats for any avalanche.
 def print_avalanche_stats(sp, index):
@@ -119,63 +131,62 @@ def save_plots(ob, dir):
     #     plt.clf()
     #     pickle.dump(regression, open(f"{dir}reg_avalduration_{type}.pik", "wb"))
 
-
-def main():
-
+def begin_program():
     print("\n"+"="*30)
     print("MAIN.PY: OUTPUT FOR EXTENDED SANDPILE AVALANCHE")
     print("="*30+"\n\n")
     print(f"\nDimensions: {length} {width}")
     sleep(1)
 
+def centre_of_grid():
+    i = (((length + 1) / 2) - 1)
+    j = (((width + 1) / 2) - 1)
+    return int(i), int(j)
+
+def main():
+
+    begin_program()
+
     # Execute avalanche a set number of times (set from input).
     print("-"*30+"\n")
     print(f"Executing {num_aval_request} avalanches...\n")
-    for i in range(num_aval_request):
-        execute_avalanches(sp, i)
+
+    # Determine which cell to drop sand on.
+    cell = None
+
+    # Determine how many grains of sand to drop in at one time.
+    n = 1
+
+    # Determine how to increment time dueing avalanche.
+    increment_time = True
+
+    for index in range(num_aval_request):
+        execute_avalanches(
+                        sp,
+                        index,
+                        n=n,
+                        cell=cell,
+                        increment_time=increment_time
+                        )
 
     sleep(0.5)
     print("\n\nDone!\n")
     print("-"*30+"\n\n")
     sleep(1)
 
-    # Print stats of last avalanche.
-    print("Statistics to last avalanche shown below:\n")
-    print_avalanche_stats(sp, -1)
-    print("\n"+"-"*30+"\n")
-
     # Save sandpile stats to enable initialization of instance of
     # observables class.
-    for sec in range(5):
-        seconds_left = 5 - sec
-        if seconds_left == 1:
-            second_str = "second"
-        else:
-            second_str = "seconds"
-        sys.stdout.write(f"\rSaving plots in {seconds_left} {second_str}...")
-        sys.stdout.flush()
-        sleep(1)
-    print("\n")
-
-    fname = f"./../output/{sandpile_class.__name__}_{length}_{width}_{num_aval_request}.pik"
+    fname = f"{dir}aval_stats.pik"
     sp.save_avalanche_stats(fname)
     print(f"aval_stats dictionary dumped to {fname}!\n")
 
     # Initialize observables class with sandpile stats above and save plots.
     ob = observables.Observables(fname)
 
-    # Directory to save plots.
-    dir = f"./../output/plots/{sandpile_class.__name__}/"
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-
-    dir += f"{length}_{width}_{num_aval_request}/"
-    if not os.path.isdir(dir):
-        os.mkdir(dir)
-
+    # Save plots of observables.
     save_plots(ob, dir)
 
-    print(f"Figures saved to directory {dir}")
+    print(f"Figures saved to directory {fname}")
     print("\n"+"-"*30+"\n")
 
     print("Program finished!\n")

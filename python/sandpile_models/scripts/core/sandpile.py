@@ -75,6 +75,14 @@ class SandPile:
 
         plt.plot(time, mass)
 
+    def increment_time(self):
+        """ Call this function to record the mass whenever there is an increment
+        of time added to the course of the sandpile.
+        """
+        self.time += 1
+        self.mass_history.append(np.sum(self.grid))
+
+
     def drop_sand(self, n=1, cell=None):
         """Add `n` grains of sand to the grid.  Each grains of sand is added to
         a random cell (or site).
@@ -108,10 +116,7 @@ class SandPile:
         self.grid[i][j] += n
 
         # Increment time by 1 and update internal mass_history.
-        self.time += 1
-        self.mass_history.append(np.sum(self.grid)) # Can we put mass func here?
-
-
+        self.increment_time()
 
     def mass(self):
         """Return the mass of the grid."""
@@ -162,9 +167,9 @@ class SandPile:
             self.grid[i][j+1] += 1
 
         if increment_time:
-            self.time += 1
+            self.increment_time()
 
-    def avalanche(self):# Other params: start?
+    def avalanche(self, increment_time=False):
         """Run the avalanche causing all cells to topple and store the stats of
         the avalanche in the appropriate variables.
         For extended sandpile, avalanches are run when the difference between
@@ -176,6 +181,14 @@ class SandPile:
         name: string
 
             Given name for the avalanche.
+
+        increment_time: bool
+
+            Provides the option to increment time at every topple.
+            If True, time is incremented at the end of every topple and not
+            incremented at the end of the avalanche.
+            If False, time is only incremented at the end of the avalanche.
+            Defaults to False.
 
         """
 
@@ -193,7 +206,7 @@ class SandPile:
         while cells_to_topple:
             # Topple each cell and update avalanche statistics.
             for cell in cells_to_topple:
-                self.topple(cell)
+                self.topple(cell, increment_time)
 
                 if not first_toppled_cell:
                     first_toppled_cell.append(cell[0])
@@ -204,7 +217,8 @@ class SandPile:
 
             cells_to_topple = self.check_threshold()
 
-            self.time += 1
+            if not increment_time:
+                self.increment_time()
 
         # Record observables into the avalanche_stats attributes
         unique_toppled_cells = np.unique(toppled_cells, axis=0)
@@ -340,7 +354,7 @@ class SandPileEXT1(SandPile):
                 self.grid[ii][jj] += 1
 
         if increment_time:
-            self.time += 1
+            self.increment_time()
 
 
 class SandPileEXT2(SandPile):
@@ -442,4 +456,50 @@ class SandPileEXT2(SandPile):
                     self.grid[ii][jj] += 1
 
         if increment_time:
-            self.time += 1
+            self.increment_time()
+
+class SandPileEXT3(SandPile):
+
+    """ THE EXTENDED SANDPILE MODEL (NO. 3):
+    This program establishes the set of functions to form an extended form of
+    the sandpile model with a set of subroutines for the NxN sandpile grid.
+    In this extended version, toppling occurs randomly instead of being
+    triggered by any condition.
+
+    Details:
+    - Toppling occurs randomly.
+    - Toppling consists of distributing one grain of sand to each 4 of its
+    neighbours.
+
+    """
+
+    def __init__(self, length, width, threshold=8):
+        """Initialize a sandpile with the specified length and width."""
+        super().__init__(length, width, threshold=threshold)
+
+    def topple(self, cell, increment_time=False):
+        """Topple the specified cell.
+        Parameters
+        ==========
+
+        increment_time: bool
+
+            Whether to increment one time step or not. Defaults to False.
+
+        """
+
+        i, j = cell
+
+        self.grid[i][j] -= 4
+
+        if i != 0:
+            self.grid[i-1][j] += 1
+        if i != self.length - 1:
+            self.grid[i+1][j] += 1
+        if j != 0:
+            self.grid[i][j-1] += 1
+        if j != self.width - 1:
+            self.grid[i][j+1] += 1
+
+        if increment_time:
+            self.increment_time()
