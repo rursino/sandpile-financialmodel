@@ -19,11 +19,14 @@ import observables
 # reload(observables)
 
 
+
+
 """ INPUTS"""
 DIRECTORY = f"./../../output/"
 
-length = 11 #int(sys.argv[1]) # Dimensions for grid.
-width = 11 #int(sys.argv[2])
+# Dimensions for grid.
+length = 11
+width = 11
 
 num_aval_request = 5000 # Requested number of avalanches (by user).
 
@@ -56,9 +59,7 @@ centre_of_grid = {
 # APPLY SETTING HERE
 setting = basic_no_increment_time
 
-cell = setting["cell"]
-n = setting["n"]
-increment_time = setting["increment_time"]
+cell, n, increment_time = setting.values()
 
 
 """ SETUP """
@@ -75,6 +76,8 @@ if not os.path.isdir(dir):
 dir += f"{length}_{width}_{num_aval_request}/"
 if not os.path.isdir(dir):
     os.mkdir(dir)
+
+
 
 
 """ FUNCTIONS """
@@ -104,7 +107,7 @@ def execute_avalanches(sp, index, n=1, cell=None, increment_time=False):
             sp.avalanche(increment_time)
             no_avalanche = False
         else:
-            sp.drop_sand(cell=cell)
+            sp.drop_sand(n=n, cell=cell)
 
 # Print stats for any avalanche.
 def print_avalanche_stats(sp, index):
