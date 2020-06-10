@@ -19,23 +19,56 @@ import observables
 # reload(observables)
 
 
-""" INPUTS """
-# Dimensions for grid.
-length = int(sys.argv[1])
-width = int(sys.argv[2])
+""" INPUTS"""
+DIRECTORY = f"./../../output/"
 
-# Requested number of avalanches (by user).
-num_aval_request = 2000
+length = 11 #int(sys.argv[1]) # Dimensions for grid.
+width = 11 #int(sys.argv[2])
+
+num_aval_request = 5000 # Requested number of avalanches (by user).
+
+
+""" SETTINGS"""
+# Basic
+basic = {
+    "cell" : None,
+    "n" : 1,
+    "increment_time" : True
+}
+
+# Basic (Increment time at end of avalanche only)
+basic_no_increment_time = {
+    "cell" : None,
+    "n" : 1,
+    "increment_time" : False
+}
+
+# Drop sand at centre of grid only.
+i = (((length + 1) / 2) - 1)
+j = (((width + 1) / 2) - 1)
+
+centre_of_grid = {
+    "cell" : (int(i), int(j)),
+    "n" : 1,
+    "increment_time" : True
+}
+
+# APPLY SETTING HERE
+setting = basic_no_increment_time
+
+cell = setting["cell"]
+n = setting["n"]
+increment_time = setting["increment_time"]
+
+
+""" SETUP """
 
 # Initialize sandpile.
 sandpile_class = sandpile.SandPile
 sp = sandpile_class(length, width)
 
 # Directories
-DIRECTORY = f"./../../output/"
-MODEL_DIR = f"{sandpile_class.__name__}/"
-
-dir = DIRECTORY + MODEL_DIR
+dir = f"{DIRECTORY}{sandpile_class.__name__}/"
 if not os.path.isdir(dir):
     os.mkdir(dir)
 
@@ -138,11 +171,6 @@ def begin_program():
     print(f"\nDimensions: {length} {width}")
     sleep(1)
 
-def centre_of_grid():
-    i = (((length + 1) / 2) - 1)
-    j = (((width + 1) / 2) - 1)
-    return int(i), int(j)
-
 def main():
 
     begin_program()
@@ -150,15 +178,6 @@ def main():
     # Execute avalanche a set number of times (set from input).
     print("-"*30+"\n")
     print(f"Executing {num_aval_request} avalanches...\n")
-
-    # Determine which cell to drop sand on.
-    cell = None
-
-    # Determine how many grains of sand to drop in at one time.
-    n = 1
-
-    # Determine how to increment time dueing avalanche.
-    increment_time = True
 
     for index in range(num_aval_request):
         execute_avalanches(
