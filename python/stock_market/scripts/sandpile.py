@@ -16,7 +16,7 @@ import pickle
 
 """ FUNCTIONS """
 
-class SandPile:
+class StockMarket:
 
     """ THE STOCK MARKET SANDPILE MODEL:
     This program establishes the set of functions to form the basic form of
@@ -34,12 +34,16 @@ class SandPile:
     Each grain (unit) of stock contains some value that does not vary with
     different grains. The value is the price of the unit of stock at a
     particular time.
-    - two cells are connected by the involvement of two investors in a trade of
-    stock or 'demand' points.
-
-    * Why does a trade occur? Due to randomness or due to some condition?
-    * what does a topple represent in the stock market? A sell off from one
-    investor?
+    - a "topple" represents a set of trade of one unit of stock from an
+    investor demanding to sell and an investor demanding to buy.
+        - An investor is more likely to sell a unit of stock if it is more
+        units and more likely to buy if it has fewer units.
+        - The amount of units an investor may wish to buy or sell also depends
+        on a probability dependent on the amount of units the investor owns.
+        - a 'demand' table collects the details of every investors demand
+        points.
+        - two cells are connected by the involvement of two investors in a
+        trade of stock or 'demand' points.
 
     """
 
@@ -50,13 +54,14 @@ class SandPile:
         self.threshold = threshold
 
         self.grid = np.zeros((length, width), dtype=int)
+        self.demand = np.zeros((length, width), dtype=int)
 
         # Give each unit of stock a price.
         self.price = 10
 
         # Track the overall number of units of the sandpile overtime.
-        # The grid will store the masses at each time step.
-        self.mass_history = []
+        # The grid will store the volume at each time step.
+        self.volume_history = []
 
         # Track the time of the course of the sandpile.
         self.time = 0
@@ -65,11 +70,10 @@ class SandPile:
         self.crash_duration = []
         self.num_of_crashes = 0
         self.price_drop = 0
-        self.topples = []
-        self.lost_mass = []
+        self.lost_volume = []
 
-    def plot_mass(self, start_time=None, end_time=None):
-        """ Plots the mass of the grid over its lifetime.
+    def plot_volume(self, start_time=None, end_time=None):
+        """ Plots the volume of the grid over its lifetime.
 
         Parameters
         ==========
@@ -88,18 +92,20 @@ class SandPile:
             end_time += 1
 
         time = np.arange(self.time)[start_time:end_time]
-        mass = np.array(self.mass_history)[start_time:end_time]
+        volume = np.array(self.volume_history)[start_time:end_time]
 
-        plt.plot(time, mass)
+        plt.plot(time, volume)
+
+    def increment_time(self):
+        """ Call this function to record the mass whenever there is an increment
+        of time added to the course of the sandpile.
+        """
+        self.time += 1
+        self.volume_history.append(np.sum(self.grid))
 
     def drop_units(self, n=1, cell=None):
         """Add `n` units of stock to the grid.  Each unit is added to
         a random cell (or site).
-
-        This function also increments the time by 1 and update the internal
-        `mass_history`.  Depending on how you want to code things, you may wish
-        to also run the crash (alternatively, the crash might be
-        executed elsewhere).
 
         Parameters
         ==========
@@ -124,23 +130,27 @@ class SandPile:
 
         self.grid[i][j] += n
 
-        # Increment time by 1 and update internal mass_history.
-        self.time += 1
-        self.mass_history.append(np.sum(self.grid)) # Can we put mass func here?
+        # Increment time by 1 and update internal volume_history.
+        self.increment_time()
 
-
-
-    def mass(self):
-        """Return the mass of the grid."""
+    def volume(self):
+        """Return the volume of the grid."""
 
         return np.sum(self.grid)
 
-    def average_mass(self):
-        """Return the average mass (or height) of the grid."""
+    def average_volume(self):
+        """Return the average volume (or height) of the grid."""
 
-        return self.mass()
+        return self.volume()
 
         return (np.sum(self.grid))/(self.length * self.width)
+
+    def update_demand_grid(self):
+        """
+        """
+
+
+
 
     def check_threshold(self):
         """Returns the cells to topple because they contain a number of grains
@@ -150,8 +160,8 @@ class SandPile:
 
         return list(zip(*np.where(self.grid >= self.threshold)))
 
-    def topple(self, cell, increment_time=False):
-        """Topple the specified cell.
+    def execute_trades(self, cell, increment_time=False):
+        """Executes trades from information in demand grid.
         Parameters
         ==========
 
@@ -179,9 +189,9 @@ class SandPile:
             self.grid[i][j+1] += 1
 
         if increment_time:
-            self.time += 1
+            self.increment_time()
 
-    def crash(self):
+    def crash(self, increment_time):
         """Run the crash causing all cells to topple and store the stats of
         the crash in the appropriate variables.
         For extended sandpile, crashes are run when the difference between
@@ -190,16 +200,20 @@ class SandPile:
         Parameters
         ==========
 
-        name: string
+        increment_time: bool
 
-            Given name for the crash.
+            Provides the option to increment time at every topple.
+            If True, time is incremented at the end of every topple and not
+            incremented at the end of the avalanche.
+            If False, time is only incremented at the end of the avalanche.
+            Defaults to False.
 
         """
 
         # Initialize crash statistics.
         num_of_topples = 0
         toppled_cells = []
-        start_mass = self.mass()
+        start_volume = self.volume()
         start_time = self.time
 
         # Record first toppled cell for calculation of distance.
@@ -210,7 +224,7 @@ class SandPile:
         while cells_to_topple:
             # Topple each cell and update crash statistics.
             for cell in cells_to_topple:
-                self.topple(cell)
+                self.topple(cell, increment_time)
 
                 if not first_toppled_cell:
                     first_toppled_cell.append(cell[0])
@@ -221,7 +235,8 @@ class SandPile:
 
             cells_to_topple = self.check_threshold()
 
-            self.time += 1
+            if not increment_time:
+                self.increment_time()
 
         # Record observables into the crash_stats attributes
         unique_toppled_cells = np.unique(toppled_cells, axis=0)
@@ -240,7 +255,7 @@ class SandPile:
         self.num_of_crashes += 1
         self.topples.append(num_of_topples)
         self.area.append(area)
-        self.lost_mass.append(start_mass - self.mass())
+        self.lost_volume.append(start_volume - self.volume())
         self.distance.append(max_distance)
 
     def view_crash_stats(self, crash_index):
@@ -262,13 +277,13 @@ class SandPile:
             crash_stats["Duration"] = self.crash_duration
             crash_stats["Topples"] = self.topples
             crash_stats["Area"] = self.area
-            crash_stats["Lost mass"] = self.lost_mass
+            crash_stats["Lost volume"] = self.lost_volume
             crash_stats["Distance"] = self.distance
         else:
             crash_stats["Duration"] = self.crash_duration[crash_index]
             crash_stats["Topples"] = self.topples[crash_index]
             crash_stats["Area"] = self.area[crash_index]
-            crash_stats["Lost mass"] = self.lost_mass[crash_index]
+            crash_stats["Lost volume"] = self.lost_volume[crash_index]
             crash_stats["Distance"] = self.distance[crash_index]
 
         return crash_stats
@@ -291,7 +306,7 @@ class SandPile:
         crash_stats["Dimensions"] = (self.length, self.width)
         crash_stats["Threshold"] = self.threshold
         crash_stats["Time Elapsed"] = self.time
-        crash_stats["Mass History"] = self.mass_history
+        crash_stats["Volume History"] = self.volume_history
         crash_stats["Grid"] = self.grid
 
         pickle.dump(crash_stats, open(fname, "wb"))

@@ -178,10 +178,6 @@ class SandPile:
         Parameters
         ==========
 
-        name: string
-
-            Given name for the avalanche.
-
         increment_time: bool
 
             Provides the option to increment time at every topple.
