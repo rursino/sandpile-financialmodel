@@ -8,7 +8,7 @@ project_notes.txt
 __pycache__
 
 # Output
-/python/output/
+/python/*/output/
 
 # Reports
 report/
