@@ -12,28 +12,23 @@ from itertools import *
 
 
 """ INPUTS """
-grid = np.array([
-        [79, 76, 80, 75, 78],
-        [81, 83, 70, 76, 80],
-        [79, 78, 72, 74, 83],
-        [80, 73, 79, 74, 84],
-        [75, 78, 78, 75, 80]
-        ])
-
-threshold = 100
+length = 5
+width = 5
+threshold = 50
 
 
 """ FUNCTIONS """
 
 class StockMarket:
 
-    def __init__(self, grid, threshold=threshold):
+    def __init__(self, length, width, threshold):
         """Initialize a sandpile with the specified length and width."""
-        self.length = 5
-        self.width = 5
+        self.length = length
+        self.width = width
         self.threshold = threshold
-        self.grid = grid # Hypothetical scenario
-        self.demand = np.zeros((5,5), dtype=int)
+
+        self.grid = np.zeros((length, width), dtype=int) + threshold / 2
+        self.demand = np.zeros((length, width), dtype=int)
 
         # Give each unit of stock a price.
         self.price = 10
@@ -63,10 +58,10 @@ class StockMarket:
         """
         self.time += 1
         self.volume_history.append(np.sum(self.grid))
-        self.threshold += 0.01
+        self.threshold += 0.001
 
     def demand_probability(self, units, threshold):
-        hold = 0.7
+        hold = 0.2
 
         if units == 0:
             sell, buy = 0, 1 - hold
@@ -79,11 +74,18 @@ class StockMarket:
 
         return sell, buy, hold
 
-    def points_probability(units, threshold):
+    def magnitude_probability(self, units):
         """
         """
 
-        raise NotImplementedError()
+        p = 1 - stats.powerlaw.cdf(x=np.arange(units),
+                                a = 0.4,
+                                loc = 0,
+                                scale = units
+                                )
+        p /= sum(p)
+
+        return np.random.choice(units, p=p)
 
     def update_demand_grid(self):
         """
@@ -93,7 +95,7 @@ class StockMarket:
             i, j = cell
             units = self.grid[i][j]
 
-            events = [-1, 1, 0]
+            events = self.magnitude_probability(int(units)) * np.array([-1, 1, 0])
             weights = self.demand_probability(units, self.threshold)
             self.demand[i][j] += np.random.choice(events, p=weights)
 
@@ -127,7 +129,7 @@ class StockMarket:
                 choice_indices.remove(choice_index)
 
         self.grid += self.demand
-        self.demand = np.zeros((5,5), dtype=int)
+        self.demand = np.zeros((length, width), dtype=int)
 
         self.increment_time()
 
@@ -158,14 +160,35 @@ class StockMarket:
 
 
 """ EXECUTION """
-market = StockMarket(grid)
+market = StockMarket(length, width, threshold)
 market.grid
 
-for _ in range(3000):
+market.update_demand_grid()
+market.demand
+buy_cells = list(zip(*np.where(market.demand > 0)))
+sell_cells = list(zip(*np.where(market.demand < 0)))
+
+buy_cells
+sell_cells
+
+get_units = lambda i, j: market.grid[i][j]
+
+choice_set = []
+
+for buy_cell, sell_cell in product(buy_cells, sell_cells):
+    if get_units(*buy_cell) == get_units(*sell_cell):
+        transfer_units = get_units(*buy_cell)
+        market.grid[buy_cell[0]][buy_cell[1]] += transfer_units
+        market.grid[sell_cell[0]][sell_cell[1]] -= transfer_units
+
+market.demand
+
+for _ in range(50):
     market.execute_trades()
 
+plt.plot(market.volume_history)
 market.grid
-plt.plot(market.volume_history); plt.ylim([1750, 2700])
+
 
 """ DEVS """
 n = 100
@@ -175,3 +198,12 @@ y = 0.8 * stats.norm.cdf(x=x,
                         scale=0.15*n
                         )
 plt.plot(x, y); plt.plot(x, 0.8-y)
+
+units = 50
+p = 1 - stats.powerlaw.cdf(x=np.arange(units),
+                        a = 0.4,
+                        loc = 0,
+                        scale = units
+                        )
+p /= sum(p)
+np.random.choice(units, p=p)
