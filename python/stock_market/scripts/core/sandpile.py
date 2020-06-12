@@ -1,8 +1,5 @@
 """ A script that contains the sandpile model to simulate the temporal
 behaviour of a stock market index fund.
-
-AIM:
--
 """
 
 
@@ -10,6 +7,8 @@ AIM:
 
 from itertools import *
 import numpy as np
+import scipy as sp
+from scipy import stats
 import matplotlib.pyplot as plt
 import pickle
 
@@ -53,7 +52,7 @@ class StockMarket:
         self.width = width
         self.threshold = threshold
 
-        self.grid = np.zeros((length, width), dtype=int)
+        self.grid = np.zeros((length, width), dtype=int) + 2
         self.demand = np.zeros((length, width), dtype=int)
 
         # Give each unit of stock a price.
@@ -149,9 +148,6 @@ class StockMarket:
         """
         """
 
-
-
-
     def check_threshold(self):
         """Returns the cells to topple because they contain a number of grains
         that is at or over the threshold set from the initialisation of the
@@ -161,19 +157,19 @@ class StockMarket:
         return list(zip(*np.where(self.grid >= self.threshold)))
 
     def execute_trades(self, cell, increment_time=False):
-        """Executes trades from information in demand grid.
-        Parameters
-        ==========
+    """Executes trades from information in demand grid.
+    Parameters
+    ==========
 
-        cell: tuple-like
+    cell: tuple-like
 
-            The address of the cell to topple.
+        The address of the cell to topple.
 
-        increment_time: bool
+    increment_time: bool
 
-            Whether to increment one time step or not. Defaults to False.
+        Whether to increment one time step or not. Defaults to False.
 
-        """
+    """
 
         i, j = cell
 
@@ -191,7 +187,7 @@ class StockMarket:
         if increment_time:
             self.increment_time()
 
-    def crash(self, increment_time):
+    def crash(self, increment_time=False):
         """Run the crash causing all cells to topple and store the stats of
         the crash in the appropriate variables.
         For extended sandpile, crashes are run when the difference between
