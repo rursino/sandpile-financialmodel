@@ -27,7 +27,7 @@ class StockMarket:
         self.width = width
         self.threshold = threshold
 
-        self.grid = np.zeros((length, width), dtype=int) + threshold / 2
+        self.grid = np.zeros((length, width), dtype=int) + int(threshold / 2)
         self.demand = np.zeros((length, width), dtype=int)
 
         # Give each unit of stock a price.
@@ -58,7 +58,7 @@ class StockMarket:
         """
         self.time += 1
         self.volume_history.append(np.sum(self.grid))
-        self.threshold += 0.001
+        self.threshold += 0.005
 
     def demand_probability(self, units, threshold):
         hold = 0.2
@@ -67,7 +67,7 @@ class StockMarket:
             sell, buy = 0, 1 - hold
         else:
             p = (1 - hold) * stats.norm.cdf(x=units,
-                                        loc=0.75*threshold,
+                                        loc=0.9*threshold,
                                         scale=0.15*threshold
                                         )
             sell, buy = p, (1 - hold) - p
@@ -78,12 +78,13 @@ class StockMarket:
         """
         """
 
-        p = 1 - stats.powerlaw.cdf(x=np.arange(units),
-                                a = 0.4,
+        p = 1 - stats.powerlaw.cdf(x=np.arange(units*0.25),
+                                a = 0.01,
                                 loc = 0,
                                 scale = units
                                 )
         p /= sum(p)
+        p = np.concatenate([p, np.zeros(int(units*0.75))])
 
         return np.random.choice(units, p=p)
 
@@ -102,6 +103,17 @@ class StockMarket:
         return np.sum(self.demand)
 
     def execute_trades(self):
+        """
+        """
+
+        self.update_demand_grid()
+
+        self.grid += self.demand
+        self.demand = np.zeros((length, width), dtype=int)
+
+        self.increment_time()
+
+    def DEV_execute_trades(self):
         """Executes trades from information in demand grid abd returns the
         cells that were not paired for trading. These cells either lost or
         gained a unit of stock without it being moved to or from another
@@ -136,7 +148,20 @@ class StockMarket:
         if difference < 0: #This is a crash, no matter how small.
             self.uninvolved_investors.append(len(choice_set))
 
-    def crash(self, increment_time=False):
+    def crash(self, increment_time=False, duration=100):
+        """
+        """
+        start_volume = self.volume()
+        start_time = self.time
+
+        for _ in range(duration):
+            self.execute_trades()
+
+        self.lost_volume.append(start_volume - self.volume())
+        self.crash_duration.append(self.time - start_time)
+        self.num_of_crashes += 1
+
+    def DEV_crash(self, increment_time=False):
         """
         """
 
@@ -163,23 +188,44 @@ class StockMarket:
 market = StockMarket(length, width, threshold)
 market.grid
 
+market.crash(duration=2000)
+plt.plot(market.volume_history); plt.xlim([500,2000]); plt.ylim([1000,1450])
+
+market.grid
+
 market.update_demand_grid()
-market.demand
 buy_cells = list(zip(*np.where(market.demand > 0)))
 sell_cells = list(zip(*np.where(market.demand < 0)))
 
 buy_cells
 sell_cells
 
-get_units = lambda i, j: market.grid[i][j]
+get_units = lambda i, j: market.demand[i][j]
 
-choice_set = []
+get_units(*(2,4))
+
+market.demand
 
 for buy_cell, sell_cell in product(buy_cells, sell_cells):
-    if get_units(*buy_cell) == get_units(*sell_cell):
+    if get_units(*buy_cell) == -get_units(*sell_cell):
         transfer_units = get_units(*buy_cell)
+
         market.grid[buy_cell[0]][buy_cell[1]] += transfer_units
+        market.demand[buy_cell[0]][buy_cell[1]] -= transfer_units
+
+        market.demand[sell_cell[0]][sell_cell[1]] += transfer_units
         market.grid[sell_cell[0]][sell_cell[1]] -= transfer_units
+
+        try:
+            buy_cells.remove(buy_cell)
+            sell_cells.remove(sell_cell)
+        except ValueError():
+            pass
+
+        print(buy_cell, sell_cell, "transfered", transfer_units)
+
+buy_cells
+sell_cells
 
 market.demand
 
@@ -191,19 +237,23 @@ market.grid
 
 
 """ DEVS """
-n = 100
+n = 50
 x = np.arange(0, n+1)
 y = 0.8 * stats.norm.cdf(x=x,
-                        loc=0.75*n,
+                        loc=0.9*n,
                         scale=0.15*n
                         )
 plt.plot(x, y); plt.plot(x, 0.8-y)
 
 units = 50
-p = 1 - stats.powerlaw.cdf(x=np.arange(units),
-                        a = 0.4,
+p = 1 - stats.powerlaw.cdf(x=np.arange(units/4),
+                        a = 0.1,
                         loc = 0,
                         scale = units
                         )
 p /= sum(p)
+p = np.concatenate([p, np.zeros(int((3/4)*units))])
+plt.plot(p); plt.xlim([0, units])
+
 np.random.choice(units, p=p)
+np.arange(4.5)
