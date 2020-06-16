@@ -95,25 +95,30 @@ class SandPile:
         Parameters
         ==========
 
-        n: int
+        n: int or iter
 
           The number of grains of sand of drop at this time step.  If left
           unspecified, defaults to 1.
+          If iterable, then selects a random choice from that iterable.
 
-        cell: tuple (i,j)
+        cell: list
 
           The cell on which the grain(s) of sand should be dropped.  If `None`,
           a random cell is used.
+          Argument must otherwise be a list or iterable, which selects a
+          random cell from that list.
 
         """
 
         if cell:
-            i,j = cell
+            max_index = len(cell)
+            random_index = np.random.randint(max_index)
+            i, j = cell[random_index]
         else:
             i = np.random.randint(self.length)
             j = np.random.randint(self.width)
 
-        self.grid[i][j] += n
+        self.grid[i][j] += np.random.choice(n) if type(n) != int else n
 
         # Increment time by 1 and update internal mass_history.
         self.increment_time()
