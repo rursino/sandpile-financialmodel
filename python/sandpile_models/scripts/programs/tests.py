@@ -43,8 +43,8 @@ j = int(((width + 1) / 2) - 1)
 centre_of_grid = Settings("centre_of_grid/", [(i, j)], 1)
 
 # TOP LEFT QUARTER
-tlq_cells = product(range(i), range(j))
-bottom_left_qtr = Settings("bottom_left_qtr/", tlq_cells, 1)
+tlq_cells = list(product(range(i), range(j)))
+top_left_qtr = Settings("top_left_qtr/", tlq_cells, 1)
 
 # DROP 4 GRAINS
 four_grains = Settings("four_grains/", None, 4)
