@@ -1,5 +1,8 @@
 """ Main program: Simulates a sequence of avalanches and saves statistics
 to observables.
+
+Run in terminal as follows:
+python tests.py length width num_aval_request setting sandpile_class
 """
 
 """ IMPORTS """
@@ -9,76 +12,67 @@ import os
 from time import sleep
 import matplotlib.pyplot as plt
 import pickle
+from collections import namedtuple
+from itertools import product
 
 sys.path.append("./../core")
 import sandpile
 import observables
 
-# from importlib import reload
-# reload(sandpile)
-# reload(observables)
 
+""" INPUTS """
 
+Settings = namedtuple('Settings',
+                        [
+                        'directory',
+                        'cell',
+                        'n'
+                        ]
+                        )
 
+length = int(sys.argv[1])
+width = int(sys.argv[2])
+num_aval_request = int(sys.argv[3])
 
-""" INPUTS"""
-DIRECTORY = f"./../../output/"
+# BASIC setting.
+basic = Settings("basic/", None, 1)
 
-# Dimensions for grid.
-length = 11
-width = 11
+# CENTRE_OF_GRID setting.
+i = int(((length + 1) / 2) - 1)
+j = int(((width + 1) / 2) - 1)
+centre_of_grid = Settings("centre_of_grid/", [(i, j)], 1)
 
-num_aval_request = 5000 # Requested number of avalanches (by user).
+# TOP LEFT QUARTER
+tlq_cells = product(range(i), range(j))
+bottom_left_qtr = Settings("bottom_left_qtr/", tlq_cells, 1)
 
+# DROP 4 GRAINS
+four_grains = Settings("four_grains/", None, 4)
 
-""" SETTINGS"""
-# Basic
-basic = {
-    "cell" : None,
-    "n" : 1,
-    "increment_time" : True
-}
+# DROP RANDOM AMOUNT OF GRAINS
+random_grains = Settings("random_grains/", None, range(6))
 
-# Basic (Increment time at end of avalanche only)
-basic_no_increment_time = {
-    "cell" : None,
-    "n" : 1,
-    "increment_time" : False
-}
-
-# Drop sand at centre of grid only.
-i = (((length + 1) / 2) - 1)
-j = (((width + 1) / 2) - 1)
-
-centre_of_grid = {
-    "cell" : (int(i), int(j)),
-    "n" : 1,
-    "increment_time" : True
-}
-
-# APPLY SETTING HERE
-setting = basic_no_increment_time
-
-cell, n, increment_time = setting.values()
+# SETTING APPLIED HERE
+setting = vars()[sys.argv[4]]
 
 
 """ SETUP """
 
+cell = setting.cell
+n = setting.n
+
 # Initialize sandpile.
-sandpile_class = sandpile.SandPile
-sp = sandpile_class(length, width)
+sandpile_class = sys.argv[5]
+sp = getattr(sandpile, sandpile_class)(length, width)
 
 # Directories
-dir = f"{DIRECTORY}{sandpile_class.__name__}/"
-if not os.path.isdir(dir):
-    os.mkdir(dir)
+DIRECTORY = f"./../../output/tests/{setting.directory}{sandpile_class}/"
+if not os.path.isdir(DIRECTORY):
+    os.mkdir(DIRECTORY)
 
-dir += f"{length}_{width}_{num_aval_request}/"
-if not os.path.isdir(dir):
-    os.mkdir(dir)
-
-
-
+DIRECTORY += f"{length}_{width}_{num_aval_request}/"
+if not os.path.isdir(DIRECTORY):
+    os.mkdir(DIRECTORY)
 
 """ FUNCTIONS """
 def progress_bar(func):
@@ -188,7 +182,7 @@ def main():
                         index,
                         n=n,
                         cell=cell,
-                        increment_time=increment_time
+                        increment_time=1
                         )
 
     sleep(0.5)
@@ -198,7 +192,7 @@ def main():
 
     # Save sandpile stats to enable initialization of instance of
     # observables class.
-    fname = f"{dir}aval_stats.pik"
+    fname = f"{DIRECTORY}aval_stats.pik"
     sp.save_avalanche_stats(fname)
     print(f"aval_stats dictionary dumped to {fname}!\n")
 
@@ -206,7 +200,7 @@ def main():
     ob = observables.Observables(fname)
 
     # Save plots of observables.
-    save_plots(ob, dir)
+    save_plots(ob, DIRECTORY)
 
     print(f"Figures saved to directory {fname}")
     print("\n"+"-"*30+"\n")
