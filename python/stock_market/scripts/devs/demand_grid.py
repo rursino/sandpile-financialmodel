@@ -189,7 +189,7 @@ market = StockMarket(length, width, threshold)
 market.grid
 
 market.crash(duration=2000)
-plt.plot(market.volume_history); plt.xlim([500,2000]); plt.ylim([1000,1450])
+plt.plot(market.volume_history)#; plt.xlim([500,2000]); plt.ylim([1000,1450])
 
 market.grid
 
@@ -246,13 +246,14 @@ y = 0.8 * stats.norm.cdf(x=x,
 plt.plot(x, y); plt.plot(x, 0.8-y)
 
 units = 50
-p = 1 - stats.powerlaw.cdf(x=np.arange(units/4),
-                        a = 0.1,
+p = 1 - stats.powerlaw.cdf(x=np.arange((1/5)*units),
+                        a = 0.03,
                         loc = 0,
                         scale = units
                         )
 p /= sum(p)
-p = np.concatenate([p, np.zeros(int((3/4)*units))])
+p = np.concatenate([p, np.zeros(int((4/5)*units))])
+len(p)
 plt.plot(p); plt.xlim([0, units])
 
 np.random.choice(units, p=p)

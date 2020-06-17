@@ -55,9 +55,6 @@ class StockMarket:
         self.grid = np.zeros((length, width), dtype=int) + 2
         self.demand = np.zeros((length, width), dtype=int)
 
-        # Give each unit of stock a price.
-        self.price = 10
-
         # Track the overall number of units of the sandpile overtime.
         # The grid will store the volume at each time step.
         self.volume_history = []
@@ -68,7 +65,6 @@ class StockMarket:
         # Record the observables of each crash.
         self.crash_duration = []
         self.num_of_crashes = 0
-        self.price_drop = 0
         self.lost_volume = []
 
     def plot_volume(self, start_time=None, end_time=None):
@@ -101,36 +97,7 @@ class StockMarket:
         """
         self.time += 1
         self.volume_history.append(np.sum(self.grid))
-
-    def drop_units(self, n=1, cell=None):
-        """Add `n` units of stock to the grid.  Each unit is added to
-        a random cell (or site).
-
-        Parameters
-        ==========
-
-        n: int
-
-          The number of units of stock of drop at this time step.  If left
-          unspecified, defaults to 1.
-
-        cell: tuple (i,j)
-
-          The cell on which the unit(s) should be dropped.  If `None`,
-          a random cell is used.
-
-        """
-
-        if cell:
-            i,j = cell
-        else:
-            i = np.random.randint(self.length)
-            j = np.random.randint(self.width)
-
-        self.grid[i][j] += n
-
-        # Increment time by 1 and update internal volume_history.
-        self.increment_time()
+        self.threshold += 0.005
 
     def volume(self):
         """Return the volume of the grid."""
@@ -140,119 +107,115 @@ class StockMarket:
     def average_volume(self):
         """Return the average volume (or height) of the grid."""
 
-        return self.volume()
-
         return (np.sum(self.grid))/(self.length * self.width)
 
-    def update_demand_grid(self):
-        """
-        """
-
-    def check_threshold(self):
-        """Returns the cells to topple because they contain a number of grains
-        that is at or over the threshold set from the initialisation of the
-        class.
-        """
-
-        return list(zip(*np.where(self.grid >= self.threshold)))
-
-    def execute_trades(self, cell, increment_time=False):
-    """Executes trades from information in demand grid.
-    Parameters
-    ==========
-
-    cell: tuple-like
-
-        The address of the cell to topple.
-
-    increment_time: bool
-
-        Whether to increment one time step or not. Defaults to False.
-
-    """
-
-        i, j = cell
-
-        self.grid[i][j] -= 4
-
-        if i != 0:
-            self.grid[i-1][j] += 1
-        if i != self.length - 1:
-            self.grid[i+1][j] += 1
-        if j != 0:
-            self.grid[i][j-1] += 1
-        if j != self.width - 1:
-            self.grid[i][j+1] += 1
-
-        if increment_time:
-            self.increment_time()
-
-    def crash(self, increment_time=False):
-        """Run the crash causing all cells to topple and store the stats of
-        the crash in the appropriate variables.
-        For extended sandpile, crashes are run when the difference between
-        any cell and any of its neighbours reaches a threshold.
+    def demand_probability(self, units):
+        """ Determine the probability of an investor selling, buying and
+        holding stock, which depends on the number of units the investor
+        currently holds and the threshold set from the initialisation of the
+        stock market sandpile.
 
         Parameters
         ==========
 
-        increment_time: bool
+        units: int
 
-            Provides the option to increment time at every topple.
-            If True, time is incremented at the end of every topple and not
-            incremented at the end of the avalanche.
-            If False, time is only incremented at the end of the avalanche.
-            Defaults to False.
+            The number of units an investor (cell) holds.
 
         """
 
-        # Initialize crash statistics.
-        num_of_topples = 0
-        toppled_cells = []
+        hold = 0.2
+
+        if units == 0:
+            sell, buy = 0, 1 - hold
+        else:
+            p = (1 - hold) * stats.norm.cdf(x=units,
+                                        loc=0.9*self.threshold,
+                                        scale=0.15*self.threshold
+                                        )
+            sell, buy = p, (1 - hold) - p
+
+        return sell, buy, hold
+
+    def magnitude_probability(self, units):
+        """ Determine the probability of an investor moving an amount of stock,
+        no matter how it is moved (sold or bought), which depends on the number
+        of units the investor currently holds.
+
+        Parameters
+        ==========
+
+        units: int
+
+            The number of units an investor (cell) holds.
+
+        """
+
+        p = 1 - stats.powerlaw.cdf(x=np.arange(units*0.25),
+                                a = 0.01,
+                                loc = 0,
+                                scale = units
+                                )
+        p /= sum(p)
+        p = np.concatenate([p, np.zeros(int(units*0.75))])
+
+        return np.random.choice(units, p=p)
+
+    def update_demand_grid(self):
+        """ Update the demand of each investor at a particular time. Each
+        investor will either sell, buy or hold stock according to the
+        probability distribution set by the number of units one holds. The
+        number of units one buys or sells can also depend on the probability
+        distribution set by the number of units one holds
+        """
+
+        for cell in product(range(self.length), range(self.width)):
+            i, j = cell
+            units = self.grid[i][j]
+
+            events = self.magnitude_probability(int(units)) * np.array([-1, 1, 0])
+            weights = self.demand_probability(units, self.threshold)
+            self.demand[i][j] += np.random.choice(events, p=weights)
+
+        return np.sum(self.demand)
+
+    def trade(self):
+        """ Execute one trade by updating the demand grid and realising the
+        demands of each investor into their volume of stocks.
+        This function also resets the demand of investors back to zero.
+        """
+
+        self.update_demand_grid()
+
+        self.grid += self.demand
+        self.demand = np.zeros((length, width), dtype=int)
+
+        self.increment_time()
+
+    def run_trades(self, duration):
+        """ Run a number of trades set by the 'duration' parameter.
+
+        Parameters
+        ==========
+
+        duration: int
+
+            The number of trades to execute.
+
+        """
         start_volume = self.volume()
         start_time = self.time
 
-        # Record first toppled cell for calculation of distance.
-        first_toppled_cell = []
+        for _ in range(duration):
+            self.trade()
 
-        # Topple cells until all cells have less than the threshold no.
-        cells_to_topple = self.check_threshold()
-        while cells_to_topple:
-            # Topple each cell and update crash statistics.
-            for cell in cells_to_topple:
-                self.topple(cell, increment_time)
-
-                if not first_toppled_cell:
-                    first_toppled_cell.append(cell[0])
-                    first_toppled_cell.append(cell[1])
-
-                toppled_cells.append(cell)
-                num_of_topples += 1
-
-            cells_to_topple = self.check_threshold()
-
-            if not increment_time:
-                self.increment_time()
-
-        # Record observables into the crash_stats attributes
-        unique_toppled_cells = np.unique(toppled_cells, axis=0)
-
-        # Calculate 'area' = number of unique toppled cells.
-        area = len(unique_toppled_cells)
-
-        # Calculate distance.
-        difference_i = unique_toppled_cells.T[0] - first_toppled_cell[0]
-        difference_j = unique_toppled_cells.T[1] - first_toppled_cell[1]
-        distance = abs(difference_i) + abs(difference_j)
-        max_distance = max(distance)
-
-        # Record all stats into crash_stats.
+        self.lost_volume.append(start_volume - self.volume())
         self.crash_duration.append(self.time - start_time)
         self.num_of_crashes += 1
-        self.topples.append(num_of_topples)
-        self.area.append(area)
-        self.lost_volume.append(start_volume - self.volume())
-        self.distance.append(max_distance)
+
+    def detect_crashes(self):
+        """
+        """
 
     def view_crash_stats(self, crash_index):
         """View the stats of any crash or all crashes.
