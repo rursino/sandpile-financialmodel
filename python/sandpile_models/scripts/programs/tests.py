@@ -150,27 +150,14 @@ def save_plots(ob, dir):
     plt.savefig(f"{dir}heatmap_grid.png")
     plt.clf()
 
-    # x = ob.distance
-    # y = ob.aval_duration
-    # types = "linear", "powerlaw"
-    # scales = "linear", "log"
-    # remove_zeroes = 0, 1
-    # for (type, scale, rz) in zip(types, scales, remove_zeroes):
-    #     regression = ob.regression(x, y, type, rz, 1, scale, scale)
-    #     plt.savefig(f"{dir}reg_avalduration_{type}.png")
-    #     plt.clf()
-    #     pickle.dump(regression, open(f"{dir}reg_avalduration_{type}.pik", "wb"))
 
-def begin_program():
+def main():
+
     print("\n"+"="*30)
     print("MAIN.PY: OUTPUT FOR EXTENDED SANDPILE AVALANCHE")
     print("="*30+"\n\n")
     print(f"\nDimensions: {length} {width}")
     sleep(1)
-
-def main():
-
-    begin_program()
 
     # Execute avalanche a set number of times (set from input).
     print("-"*30+"\n")
