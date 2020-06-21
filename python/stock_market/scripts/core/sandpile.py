@@ -52,7 +52,7 @@ class StockMarket:
         self.width = width
         self.threshold = threshold
 
-        self.grid = np.zeros((length, width), dtype=int) + 2
+        self.grid = np.zeros((length, width), dtype=int) + int(threshold / 2)
         self.demand = np.zeros((length, width), dtype=int)
 
         # Track the overall number of units of the sandpile overtime.
@@ -63,9 +63,7 @@ class StockMarket:
         self.time = 0
 
         # Record the observables of each crash.
-        self.crash_duration = []
-        self.num_of_crashes = 0
-        self.lost_volume = []
+        self.uninvolved_investors = []
 
     def plot_volume(self, start_time=None, end_time=None):
         """ Plots the volume of the grid over its lifetime.
@@ -97,7 +95,7 @@ class StockMarket:
         """
         self.time += 1
         self.volume_history.append(np.sum(self.grid))
-        self.threshold += 0.005
+        self.threshold += 0.001
 
     def volume(self):
         """Return the volume of the grid."""
@@ -130,8 +128,8 @@ class StockMarket:
             sell, buy = 0, 1 - hold
         else:
             p = (1 - hold) * stats.norm.cdf(x=units,
-                                        loc=0.9*self.threshold,
-                                        scale=0.15*self.threshold
+                                        loc=0.5*self.threshold,
+                                        scale=0.2*self.threshold
                                         )
             sell, buy = p, (1 - hold) - p
 
@@ -151,13 +149,13 @@ class StockMarket:
 
         """
 
-        p = 1 - stats.powerlaw.cdf(x=np.arange(units*0.25),
-                                a = 0.01,
+        p = 1 - stats.powerlaw.cdf(x=np.arange(units*0.05),
+                                a = 0.1,
                                 loc = 0,
                                 scale = units
                                 )
+        p = np.concatenate([p, 0.0 + np.zeros(int(units*0.95))])
         p /= sum(p)
-        p = np.concatenate([p, np.zeros(int(units*0.75))])
 
         return np.random.choice(units, p=p)
 
@@ -174,25 +172,25 @@ class StockMarket:
             units = self.grid[i][j]
 
             events = self.magnitude_probability(int(units)) * np.array([-1, 1, 0])
-            weights = self.demand_probability(units, self.threshold)
+            weights = self.demand_probability(int(units))
             self.demand[i][j] += np.random.choice(events, p=weights)
 
         return np.sum(self.demand)
 
     def trade(self):
-        """ Execute one trade by updating the demand grid and realising the
-        demands of each investor into their volume of stocks.
+        """ Execute one trade by updating the demand grid and then realising
+        the demands of each investor into their volume of stocks.
         This function also resets the demand of investors back to zero.
         """
 
         self.update_demand_grid()
 
         self.grid += self.demand
-        self.demand = np.zeros((length, width), dtype=int)
+        self.demand = np.zeros((self.length, self.width), dtype=int)
 
         self.increment_time()
 
-    def run_trades(self, duration):
+    def run_simulation(self, duration):
         """ Run a number of trades set by the 'duration' parameter.
 
         Parameters
@@ -203,15 +201,9 @@ class StockMarket:
             The number of trades to execute.
 
         """
-        start_volume = self.volume()
-        start_time = self.time
 
         for _ in range(duration):
             self.trade()
-
-        self.lost_volume.append(start_volume - self.volume())
-        self.crash_duration.append(self.time - start_time)
-        self.num_of_crashes += 1
 
     def detect_crashes(self):
         """
@@ -271,3 +263,8 @@ class StockMarket:
         pickle.dump(crash_stats, open(fname, "wb"))
 
         return crash_stats
+
+sm = StockMarket(10,10,100)
+sm.run_simulation(700)
+sm.plot_volume()
+sm.grid
