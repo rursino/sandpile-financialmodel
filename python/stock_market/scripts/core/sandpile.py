@@ -62,9 +62,6 @@ class StockMarket:
         # Track the time of the course of the sandpile.
         self.time = 0
 
-        # Record the observables of each crash.
-        self.uninvolved_investors = []
-
     def plot_volume(self, start_time=None, end_time=None):
         """ Plots the volume of the grid over its lifetime.
 
@@ -94,18 +91,13 @@ class StockMarket:
         of time added to the course of the sandpile.
         """
         self.time += 1
-        self.volume_history.append(np.sum(self.grid))
+        self.volume_history.append(self.volume())
         self.threshold += 0.001
 
     def volume(self):
         """Return the volume of the grid."""
 
         return np.sum(self.grid)
-
-    def average_volume(self):
-        """Return the average volume (or height) of the grid."""
-
-        return (np.sum(self.grid))/(self.length * self.width)
 
     def demand_probability(self, units):
         """ Determine the probability of an investor selling, buying and
@@ -205,44 +197,11 @@ class StockMarket:
         for _ in range(duration):
             self.trade()
 
-    def detect_crashes(self):
-        """
-        """
-
-    def view_crash_stats(self, crash_index):
-        """View the stats of any crash or all crashes.
-
-        Parameters
-        ==========
-
-        crash_index: int or string
-
-            Index of lists to get any crash, or 'all' gives entirety of
-            all lists.
-
-        """
-
-        crash_stats = {}
-
-        if crash_index == "all":
-            crash_stats["Duration"] = self.crash_duration
-            crash_stats["Topples"] = self.topples
-            crash_stats["Area"] = self.area
-            crash_stats["Lost volume"] = self.lost_volume
-            crash_stats["Distance"] = self.distance
-        else:
-            crash_stats["Duration"] = self.crash_duration[crash_index]
-            crash_stats["Topples"] = self.topples[crash_index]
-            crash_stats["Area"] = self.area[crash_index]
-            crash_stats["Lost volume"] = self.lost_volume[crash_index]
-            crash_stats["Distance"] = self.distance[crash_index]
-
-        return crash_stats
-
-    def save_crash_stats(self, fname):
-        """Creates a dictionary object with all crash state and saves it
-        all as a pickle file.
-        This can be used as creating a file for the Observables class.
+    def save_simulation(self, fname):
+        """ Creates a dictionary containing information of the run simulation,
+        including the dimensions of the grid, the units of stock owned by
+        each investor (from the grid) and a timeseries of the history of the
+        grid volume.
 
         Parameters
         ==========
@@ -253,18 +212,13 @@ class StockMarket:
 
         """
 
-        crash_stats = self.view_crash_stats("all")
-        crash_stats["Dimensions"] = (self.length, self.width)
-        crash_stats["Threshold"] = self.threshold
-        crash_stats["Time Elapsed"] = self.time
-        crash_stats["Volume History"] = self.volume_history
-        crash_stats["Grid"] = self.grid
+        simulation = {}
+        simulation["Dimensions"] = (self.length, self.width)
+        simulation["Threshold"] = self.threshold
+        simulation["Time Elapsed"] = self.time
+        simulation["Volume History"] = self.volume_history
+        simulation["Grid"] = self.grid
 
-        pickle.dump(crash_stats, open(fname, "wb"))
+        pickle.dump(simulation, open(fname, "wb"))
 
-        return crash_stats
-
-sm = StockMarket(10,10,100)
-sm.run_simulation(700)
-sm.plot_volume()
-sm.grid
+        return simulation
