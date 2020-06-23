@@ -10,20 +10,6 @@ import numpy as np
 from collections import namedtuple
 
 
-# """ INPUTS """
-# df = pd.read_csv("./../../data/sp500daily.csv",
-#                 index_col = "Date"
-#                 )
-#
-# x = df.Open
-# x
-#
-# """ EXECUTION """
-# a = Analysis(x)
-# a.crash_detection()
-# a.crash_stats(0)
-
-
 """ FUNCTIONS """
 class CrashAnalysis:
     """
@@ -34,14 +20,24 @@ class CrashAnalysis:
         self.data = _data
         self.crash_history = []
 
-    def view_timeseries(self, peaks=False, *args, **kwargs):
-        """
+    def view_timeseries(self, peaks=False):
+        """ Plots the timeseries with the option to plot the local peaks and
+        troughs.
+
+        Parameters
+        ==========
+
+        peaks: bool
+
+            Plot the peaks and troughs of the timeseries.
+            Defaults to False.
+
         """
 
         x = self.data
 
         fig = plt.figure(figsize=(20,10))
-        plt.plot(x.index, x.values, *args, **kwargs)
+        plt.plot(x.index, x.values)
         # plt.xticks([])
 
         if peaks:
@@ -55,6 +51,15 @@ class CrashAnalysis:
         """ Detects a crash in an index fund timeseries, which is defined by a
         drop in the stock price by a percent drop (determined by the parameter
         'size') from a local peak.
+
+        Parameters
+        ==========
+
+        size: int, float
+
+            The minimum size of a drop from a local peak that classifies as a
+            crash.
+
         """
 
         drop_ratio = (100 - size) / 100
@@ -81,13 +86,15 @@ class CrashAnalysis:
                 self.crash_history.append((start, end))
 
     def crash_stats(self, crash_index):
-        """ Determines the statistics of any crash.
-        x = timeseries with time index and observable, which could be units or
-        price.
-        Need:
-        - lost amount of unit.
-        - crash duration.
-        - investors?
+        """ Determines the statistics of any crash from the crash_history class
+        attribute.
+
+        Parameters
+        ==========
+
+        crash_index: int
+
+            Index of the list from the class_history attribute.
         """
 
         start, end = self.crash_history[crash_index]

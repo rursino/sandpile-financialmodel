@@ -27,11 +27,31 @@ duration = 500
 
 
 """ FUNCTIONS """
+def output_results(crashes, largest_crash):
+    with open('./../output/sandpile/crash_stats.txt', 'w') as f:
+
+        f.write("S&P 500 OUTPUT\n" + "=" * 25 + "\n" * 2)
+
+        kwargs = [crashes, largest_crash]
+
+        #'crashes' object
+        f.write("Magnitude of every crash:\n")
+        for crash in kwargs[0]:
+            f.write(f"{crash:.2f}%" + "\n")
+        f.write("\n")
+
+        #'largest_crash' object
+        f.write("Largest crash\n" + "-" * 15 + "\n")
+        largest_crash = kwargs[1]
+        f.write(f"Start of crash: {largest_crash[0][0]}\n")
+        f.write(f"End of crash: {largest_crash[0][1]}\n")
+        f.write(f"Drop: {largest_crash[1]:.2f}%\n")
+
 def main():
     market = sandpile.StockMarket(length, width, threshold)
 
     market.run_simulation(duration)
-    fname = f"./../output/{length}_{width}_{duration}.pik"
+    fname = f"./../output/sandpile/{length}_{width}_{duration}.pik"
     market.save_simulation(fname)
 
     market_data = pickle.load(open(fname, "rb"))
@@ -58,14 +78,18 @@ def main():
                     np.max(crashes)
                     )
 
-    start_crash, end_crash = largest_crash[0]
-    sub_x = x.loc[np.datetime64(start_crash) : np.datetime64(end_crash)]
+    output_results(crashes, largest_crash)
 
-    data.view_timeseries(1)
-    plt.plot(sub_x.values)
-    plt.savefig("./../output/timeseries.png")
+    data
 
-    np.datetime64(x.index)
+    # start_crash, end_crash = largest_crash[0]
+    # sub_x = x.loc[np.datetime64(start_crash) : np.datetime64(end_crash)]
+    #
+    # data.view_timeseries(1)
+    # plt.plot(sub_x.values)
+    # plt.savefig("./../output/timeseries.png")
+    #
+    # np.datetime64(x.index)
 
 """ EXECUTION """
 if __name__ == "__main__":
