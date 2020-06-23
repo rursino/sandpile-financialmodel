@@ -37,8 +37,8 @@ class CrashAnalysis:
         x = self.data
 
         fig = plt.figure(figsize=(20,10))
-        plt.plot(x.index, x.values)
-        # plt.xticks([])
+        plt.plot(x.values)
+        plt.xticks([])
 
         if peaks:
             imin = signal.argrelmin(x.values.squeeze(), order=6)[0]

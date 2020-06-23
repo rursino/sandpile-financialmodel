@@ -23,7 +23,7 @@ reload(analysis)
 length = 10
 width = 10
 threshold = 100
-duration = 500
+duration = 5000
 
 
 """ FUNCTIONS """
@@ -66,6 +66,9 @@ def main():
 
     data = analysis.CrashAnalysis(x)
 
+    data.view_timeseries(1)
+    plt.savefig("./../output/sandpile/timeseries.png")
+
     crash_size = 1 # per cent.
     data.crash_detection(crash_size)
 
@@ -79,8 +82,6 @@ def main():
                     )
 
     output_results(crashes, largest_crash)
-
-    data
 
     # start_crash, end_crash = largest_crash[0]
     # sub_x = x.loc[np.datetime64(start_crash) : np.datetime64(end_crash)]
