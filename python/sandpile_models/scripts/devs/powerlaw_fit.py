@@ -38,7 +38,7 @@ def powerlaw_fit(data, plot=False, xscale="linear", yscale="linear"):
         b, c = regression[:2]
 
         fig = plt.figure(figsize=(20,10))
-        plt.scatter(10**x, 10**y)
+        plt.plot(10**x, 10**y)
         y_reg = b*x + c
         plt.plot(10**x, 10**y_reg, color='r')
 
