@@ -115,20 +115,14 @@ def print_avalanche_stats(sp, index):
 # Save plots of histograms, line plots and heatmap of grid.
 def save_plots(ob, dir):
 
-    names = {
-    "aval_duration": ob.aval_duration,
-    "topples": ob.topples,
-    "area": ob.area,
-    "lost_mass": ob.lost_mass,
-    "distance": ob.distance
-    }
+    names = ("aval_duration", "topples", "area", "lost_mass", "distance")
 
     for name in names:
-        observable = names[name]
+        observable = name
 
         ob.histogram(observable, density=1)
         plt.savefig(f"{dir}{name}_histogram.png")
-        plt.clf()
+        plt.close()
 
         try:
             ob.distpdf(observable, 1)
@@ -136,16 +130,17 @@ def save_plots(ob, dir):
             print(f"WARNING: {name} distpdf could not be produced.")
             pass
         plt.savefig(f"{dir}{name}_pdf.png")
-        plt.clf()
+        plt.close()
 
-        ob.powerlaw_fit(observable, False, 1, "log", "log")
+        reg = ob.powerlaw_fit(observable, False, 1, "log", "log")
         plt.show()
 
-        x, y = np.unique(observable, return_counts=1)
+        data = getattr(ob, observable)
+        x, y = np.unique(data, return_counts=1)
         print(np.log10(x), np.log(y))
         cut = input("Where should the data be split (cut): ")
 
-        plt.clf()
+        plt.close()
         cut_valid = True
         while cut_valid:
             if cut == "end":
@@ -159,15 +154,15 @@ def save_plots(ob, dir):
                 cut_valid = False
 
         plt.savefig(f"{dir}{name}_powerlawfit.png")
-        plt.clf()
+        plt.close()
 
-    ob.line_plot(ob.mass_history)
+    ob.line_plot('mass_history')
     plt.savefig(f"{dir}mass_history.png")
-    plt.clf()
+    plt.close()
 
     ob.visualise_grid()
     plt.savefig(f"{dir}heatmap_grid.png")
-    plt.clf()
+    plt.close()
 
 
 def main():
