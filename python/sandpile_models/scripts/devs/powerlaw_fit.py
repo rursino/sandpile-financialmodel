@@ -15,13 +15,13 @@ sys.path.append("./../core/")
 import observables
 
 from importlib import reload
-reload(observables)
+reload(observables);
 
 """ INPUTS """
-
 fname = "./../../output/archive_stats/SandPile_10_10_20000.pik"
 ob = observables.Observables(fname)
-x = ob.area
+observable = 'aval_duration'
+ob.powerlaw_fit(observable, 1.1, True, "log", "log")
 
 """ FUNCTIONS """
 def powerlaw_fit(data, cut=False, plot=False, xscale="linear", yscale="linear"):
