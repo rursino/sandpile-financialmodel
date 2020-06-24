@@ -112,33 +112,20 @@ def print_avalanche_stats(sp, index):
     for stat in stats:
         print(f"{stat}: {aval_stats[stat]}")
 
-# Save plots of histograms, line plots and heatmap of grid.
-def save_plots(ob, dir):
+# Run through and save the plots of the powerlaw fits.
+def powerlaw_plots(ob, dir):
 
     names = ("aval_duration", "topples", "area", "lost_mass", "distance")
 
-    for name in names:
-        observable = name
+    for observable in names:
 
-        ob.histogram(observable, density=1)
-        plt.savefig(f"{dir}{name}_histogram.png")
-        plt.close()
-
-        try:
-            ob.distpdf(observable, 1)
-        except:
-            print(f"WARNING: {name} distpdf could not be produced.")
-            pass
-        plt.savefig(f"{dir}{name}_pdf.png")
-        plt.close()
-
-        reg = ob.powerlaw_fit(observable, False, 1, "log", "log")
+        ob.powerlaw_fit(observable, False, 1, "log", "log")
         plt.show()
 
         data = getattr(ob, observable)
         x, y = np.unique(data, return_counts=1)
         print(np.log10(x), np.log(y))
-        cut = input("Where should the data be split (cut): ")
+        cut = input("Where should the data be split (cut)?  ")
 
         plt.close()
         cut_valid = True
@@ -153,7 +140,27 @@ def save_plots(ob, dir):
             else:
                 cut_valid = False
 
-        plt.savefig(f"{dir}{name}_powerlawfit.png")
+        plt.savefig(f"{dir}{observable}_powerlawfit.png")
+        plt.close()
+
+# Save plots of histograms, line plots and heatmap of grid.
+def save_plots(ob, dir):
+
+    # names = ("aval_duration", "topples", "area", "lost_mass", "distance")
+    names = ("aval_duration")
+
+    for observable in names:
+
+        ob.histogram(observable, density=1)
+        plt.savefig(f"{dir}{observable}_histogram.png")
+        plt.close()
+
+        try:
+            ob.distpdf(observable, 1)
+        except:
+            print(f"WARNING: {observable} distpdf could not be produced.")
+
+        plt.savefig(f"{dir}{observable}_pdf.png")
         plt.close()
 
     ob.line_plot('mass_history')
@@ -210,7 +217,12 @@ def main():
     print("="*30)
     sleep(2)
 
+def powerlaw():
+    fname = f"{DIRECTORY}aval_stats.pik"
+    ob = observables.Observables(fname)
+    powerlaw_plots(ob, DIRECTORY)
 
 """ EXECUTION """
 if __name__ == "__main__":
-    main()
+    # main()
+    powerlaw()

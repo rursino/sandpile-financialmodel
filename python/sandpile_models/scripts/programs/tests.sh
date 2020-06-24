@@ -1,10 +1,10 @@
 ### EXECUTE THIS SCRIPT FOR ALL OUTPUT
 
-### Dimensions will be: 3, 5, 7, 10
+### Dimensions will be: 3, 7, 10
 ### Number of avalanches run will be: 10000
 
-length=3
-width=3
+length=10
+width=10
 num=10000
 
 python tests.py $length $width $num basic SandPile
