@@ -23,33 +23,46 @@ fname = "./../../output/archive_stats/SandPile_10_10_20000.pik"
 ob = observables.Observables(fname)
 x = ob.area
 
-
 """ FUNCTIONS """
-def powerlaw_fit(data, plot=False, xscale="linear", yscale="linear"):
+def powerlaw_fit(data, cut=False, plot=False, xscale="linear", yscale="linear"):
 
     x, y = np.unique(data, return_counts=1)
 
     x = np.log10(x)
     y = np.log10(y)
 
-    regression = stats.linregress(x, y)
+    if cut:
+        cut_left = (x < cut)
+        cut_right = (x >= cut)
 
-    if plot:
-        b, c = regression[:2]
+        split_xy = ((x[cut_left], y[cut_left]), (x[cut_right], y[cut_right]))
+    else:
+        split_xy = [(x, y)]
 
-        fig = plt.figure(figsize=(20,10))
-        plt.plot(10**x, 10**y)
-        y_reg = b*x + c
-        plt.plot(10**x, 10**y_reg, color='r')
+    fig = plt.figure(figsize=(20,10))
 
-        c = 10**c
+    regression_stats = []
+    for split_x, split_y in split_xy:
 
-        plt.xscale(xscale)
-        plt.yscale(yscale)
+        regression = stats.linregress(split_x, split_y)
 
-    return regression[:3]
+        if plot:
+            b, c = regression[:2]
 
+            plt.plot(10**split_x, 10**split_y)
+            y_reg = b*split_x + c
+            plt.plot(10**split_x, 10**y_reg, color='r')
+
+            c = 10**c
+
+            plt.xscale(xscale)
+            plt.yscale(yscale)
+
+            regression_stats.append(regression[:3])
+
+    return regression_stats
 
 """ EXECUTION """
 scale = "log"
-regression = powerlaw_fit(x, 1, scale, scale)
+regression = powerlaw_fit(x, 1, 1, scale, scale)
+regression

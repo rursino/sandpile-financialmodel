@@ -138,7 +138,26 @@ def save_plots(ob, dir):
         plt.savefig(f"{dir}{name}_pdf.png")
         plt.clf()
 
-        ob.powerlaw_fit(observable, 1, "log", "log")
+        ob.powerlaw_fit(observable, False, 1, "log", "log")
+        plt.show()
+
+        x, y = np.unique(observable, return_counts=1)
+        print(np.log10(x), np.log(y))
+        cut = input("Where should the data be split (cut): ")
+
+        plt.clf()
+        cut_valid = True
+        while cut_valid:
+            if cut == "end":
+                exit()
+            try:
+                cut = float(cut)
+                ob.powerlaw_fit(observable, cut, 1, "log", "log")
+            except:
+                cut = input("Invalid number. Try again: ")
+            else:
+                cut_valid = False
+
         plt.savefig(f"{dir}{name}_powerlawfit.png")
         plt.clf()
 
