@@ -30,7 +30,7 @@ duration = 5000
 def output_results(crashes, largest_crash):
     with open('./../output/sandpile/crash_stats.txt', 'w') as f:
 
-        f.write("S&P 500 OUTPUT\n" + "=" * 25 + "\n" * 2)
+        f.write("SANDPILE OUTPUT\n" + "=" * 25 + "\n" * 2)
 
         kwargs = [crashes, largest_crash]
 
@@ -46,6 +46,30 @@ def output_results(crashes, largest_crash):
         f.write(f"Start of crash: {largest_crash[0][0]}\n")
         f.write(f"End of crash: {largest_crash[0][1]}\n")
         f.write(f"Drop: {largest_crash[1]:.2f}%\n")
+
+def output_plot(data):
+    # Save timeseries plot without peaks
+    data.view_timeseries(peaks=False)
+    plt.title("Sandpile 'Volume' Timeseries", fontsize=28)
+    plt.xlabel("Time", fontsize=16)
+    plt.ylabel("Volume", fontsize=16)
+
+    plt.savefig("./../output/sandpile/timeseries.png")
+    plt.close()
+
+    print("Timeseries plot saved.")
+
+    # Save timeseries plot with peaks
+    data.view_timeseries(peaks=True)
+    plt.title("Sandpile 'Volume' Timeseries", fontsize=28)
+    plt.xlabel("Time", fontsize=16)
+    plt.ylabel("Volume", fontsize=16)
+    plt.legend(["Volume", "Troughs", "Peaks"])
+
+    plt.savefig("./../output/sandpile/timeseries_withpeaks.png")
+    plt.close()
+
+    print("Timeseries plot with peaks saved.")
 
 def main():
     market = sandpile.StockMarket(length, width, threshold)
@@ -66,9 +90,6 @@ def main():
 
     data = analysis.CrashAnalysis(x)
 
-    data.view_timeseries(1)
-    plt.savefig("./../output/sandpile/timeseries.png")
-
     crash_size = 1 # per cent.
     data.crash_detection(crash_size)
 
@@ -83,14 +104,7 @@ def main():
 
     output_results(crashes, largest_crash)
 
-    # start_crash, end_crash = largest_crash[0]
-    # sub_x = x.loc[np.datetime64(start_crash) : np.datetime64(end_crash)]
-    #
-    # data.view_timeseries(1)
-    # plt.plot(sub_x.values)
-    # plt.savefig("./../output/timeseries.png")
-    #
-    # np.datetime64(x.index)
+    output_plot(data)
 
 """ EXECUTION """
 if __name__ == "__main__":

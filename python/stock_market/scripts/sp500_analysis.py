@@ -11,6 +11,9 @@ import sys
 sys.path.append("./core/")
 import analysis
 
+from importlib import reload
+reload(analysis);
+
 
 """ INPUTS """
 df = pd.read_csv("./../data/sp500daily.csv",
@@ -41,6 +44,30 @@ def output_results(crashes, largest_crash):
         f.write(f"End of crash: {largest_crash[0][1]}\n")
         f.write(f"Drop: {largest_crash[1]:.2f}%\n")
 
+def output_plot(sp500):
+    # Save timeseries plot without peaks
+    sp500.view_timeseries(peaks=False)
+    plt.title("S&P 500 Index Fund Timeseries", fontsize=28)
+    plt.xlabel("Time", fontsize=16)
+    plt.ylabel("Price of Index", fontsize=16)
+
+    plt.savefig("./../output/sp500/timeseries.png")
+    plt.close()
+
+    print("Timeseries plot saved.")
+
+    # Save timeseries plot with peaks
+    sp500.view_timeseries(peaks=True)
+    plt.title("S&P 500 Index Fund Timeseries", fontsize=28)
+    plt.xlabel("Time", fontsize=16)
+    plt.ylabel("Price of Index", fontsize=16)
+    plt.legend(["Index", "Troughs", "Peaks"])
+
+    plt.savefig("./../output/sp500/timeseries_withpeaks.png")
+    plt.close()
+
+    print("Timeseries plot with peaks saved.")
+
 
 def main():
     sp500 = analysis.CrashAnalysis(x)
@@ -59,6 +86,8 @@ def main():
                         )
 
     output_results(crashes=crashes, largest_crash=largest_crash)
+
+    output_plot(sp500)
 
 
 """ EXECUTION """

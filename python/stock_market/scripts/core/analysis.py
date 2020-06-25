@@ -36,16 +36,16 @@ class CrashAnalysis:
 
         x = self.data
 
-        fig = plt.figure(figsize=(20,10))
-        plt.plot(x.values)
-        plt.xticks([])
+        fig, ax = plt.subplots(figsize=(20,10))
+        ax.plot(x)
+        ax.set_xticks(ax.get_xticks()[::int(5040/len(x))])
 
         if peaks:
             imin = signal.argrelmin(x.values.squeeze(), order=6)[0]
             imax = signal.argrelmax(x.values.squeeze(), order=6)[0]
 
-            plt.scatter(imin, x[imin], color='b')
-            plt.scatter(imax, x[imax], color='r')
+            ax.scatter(x[imin].index, x[imin].values, color='b')
+            ax.scatter(x[imax].index, x[imax].values, color='r')
 
     def crash_detection(self, size):
         """ Detects a crash in an index fund timeseries, which is defined by a
