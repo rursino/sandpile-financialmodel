@@ -1,6 +1,5 @@
-tutor_notes/
-notes.pdf
-project_notes.txt
+notes/
+README.txt
 
 # Python temporary files
 *.pyc
